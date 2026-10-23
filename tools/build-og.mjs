@@ -35,6 +35,7 @@
  * in sequence, and SHIP stopped at the gate. The site says "the gate is not a
  * limitation, it is the product", so the card shows the gate.
  */
+import { CHROME_DEFAULT } from './chrome-bin.mjs';
 import { readFileSync, writeFileSync, readdirSync, unlinkSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFile, execFileSync } from 'node:child_process';
@@ -78,7 +79,7 @@ function squeezePng(bytes, label) {
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = join(ROOT, 'site');
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = CHROME_DEFAULT;
 const ORIGIN = 'https://fleetcommand-2u0.pages.dev';
 // W/H are CSS pixels: the 1.91:1 box every platform expects. SCALE is the
 // device pixel ratio the card is RENDERED at, so the actual PNG is 2400x1260.
