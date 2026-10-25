@@ -1,0 +1,45 @@
+{
+  "theme": "titanium",
+  "base": "/assets/eslabon-signature/v001-b559f76c975c",
+  "revision": "b559f76c975c",
+  "public_directory": "site",
+  "source_repository": "https://github.com/TheEslabonGroup/eslabon-signature",
+  "status": "private review candidate",
+  "name": "Eslabon signature",
+  "version": "0.2.0",
+  "files": {
+    "renderer.mjs": {
+      "sha256": "41fc42a8f14c8f5e9b62e3ddde4450751d0024ddbb6388a56da4fea0cbe81b4d",
+      "bytes": 25349
+    },
+    "signature.mjs": {
+      "sha256": "10fed6ea6105d32c5e7b2fb53e8427ba7cc4acc83492eb36a753f293a006b1c1",
+      "bytes": 5608
+    },
+    "sound.mjs": {
+      "sha256": "ba117beef5161eb54b0d0343a3075c4ce123953aa02e4236afc0731731759a01",
+      "bytes": 2582
+    },
+    "surface.mjs": {
+      "sha256": "af5dd73176c53da082de88177c4d04c1380edc7701478ff39ad161e9bf791b73",
+      "bytes": 1362
+    },
+    "signature.css": {
+      "sha256": "0e12bd766e8af7fa456b5f04f5a3b9d1ae8307f07b04c6bbd42bb05dcd93e8b3",
+      "bytes": 5284
+    },
+    "still.svg": {
+      "sha256": "4934f677592543fb25362919563ecc4152c6c1c18da460cabfae3fb59e1fde56",
+      "bytes": 20725
+    },
+    "mark.svg": {
+      "sha256": "4e28a6345a048f213566a692c9ab26a266eaa83268d3b1f68c70588f2aae7a06",
+      "bytes": 300
+    },
+    "lockup.svg": {
+      "sha256": "02f765bd0b77ff35a68b22d4c49b05d9b7e1b784166e86b8fd7e6121a100de0a",
+      "bytes": 4464
+    }
+  },
+  "totalBytes": 65674
+}
