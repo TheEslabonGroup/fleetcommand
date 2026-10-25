@@ -1,6 +1,13 @@
 # On Your Go: what is still open
 
 ## RESUME HERE
+### Footer session01a170b0 close, 2026-10-25 13:34 ET
+
+The session’s footer implementation is committed, and the published result is recorded in the private fleet release receipts. This note does not complete unrelated product, account, security or access work listed below. No additional deployment is requested by this documentation update.
+Source checkpoint: ef5835023f72. Creation proof: docs/design/ESLABON-SIGNATURE-INSTALL.json, docs/design/FOOTER-2026-10-25.md.
+Next action: read this project’s existing open items below and its named proof before making another change. Preserve any newer peer work. No new background job is armed by this note.
+
+
 
 Written 2026-10-10 02:43 ET on Brocks-iMac, session 205af81f, ledger sessions/2026-10-07-Brocks-iMac-205af81f-eec9-403c-8829-f70f70e7586b.md (in the brock repo)
 
