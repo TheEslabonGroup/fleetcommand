@@ -519,7 +519,7 @@ footer .f-right{margin-left:auto}
 </main>
 
 <footer>
-  <span class="inline-sentences"><span>Built on Google ADK + Cloud Run + Gemini via Vertex AI, with SerpApi and name.com.</span> <span>No API key exists in the deployment; the service is its own identity.</span></span>
+  <span class="inline-sentences"><span>Built by The Brockchain, part of Eslabón Group.</span> <span>Every release waits for your approval.</span></span>
   <span class="f-right" id="modeNote">Mode is detected on first run.</span>
 </footer>
 
@@ -890,16 +890,16 @@ function makeRenderer(){
         if(p.functionResponse && p.functionResponse.name === 'market_search'){
           const r = p.functionResponse.response;
           searchChip.hidden = false;
-          searchChip.textContent = 'serpapi ' + r.source;
+          searchChip.textContent = 'market ' + r.source;
           searchChip.className = 'chip ' + (r.source === 'live' ? 'live' : 'sample');
-          extra = '  serpapi:' + r.source + (r.cached ? '/cached' : '');
-          const mb = addEntry('MARKET / SERPAPI', r.source, '', false);
-          await typeInto(mb, 'Google search: "' + r.query + '"\n' + marketRows(r).join('\n'));
+          extra = '  market:' + r.source + (r.cached ? '/cached' : '');
+          const mb = addEntry('MARKET RESEARCH', r.source, '', false);
+          await typeInto(mb, 'Market search: "' + r.query + '"\n' + marketRows(r).join('\n'));
         }
         if(p.functionResponse && p.functionResponse.name === 'registrar_check'){
           const r = p.functionResponse.response;
-          extra = '  name.com:' + r.source;
-          const db = addEntry('DEPLOY TARGET / NAME.COM', r.source, '', false);
+          extra = '  domain:' + r.source;
+          const db = addEntry('DEPLOY TARGET', r.source, '', false);
           await typeInto(db, 'Registrar check: does this business own its own name?\n' + domainRows(r).join('\n'));
         }
         // SHIP's staging summary rides in the stage_deploy call itself: that is
@@ -930,11 +930,11 @@ async function runMission(){
   document.body.classList.remove('gated');
   unslam();
   gateHead.textContent = 'Your call.';
-  writeSentences(gateBody, 'Mission running on Cloud Run. SHIP will hold here.');
+  writeSentences(gateBody, 'Mission running. SHIP will hold here.');
   STEPS.forEach(s => { setAgent(s, '', 'idle'); setMeta(s, ''); });
   confirmationId = null;
   sessionId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
-  const sys = addEntry('', '', 'Opening a mission session on Cloud Run...', true);
+  const sys = addEntry('', '', 'Opening a mission session...', true);
   const render = makeRenderer();
   try{
     const sres = await fetch(API + '/apps/' + APP + '/users/cockpit/sessions/' + sessionId, {
@@ -943,12 +943,12 @@ async function runMission(){
     });
     if(!sres.ok) throw new Error('session HTTP ' + sres.status);
     sys.parentElement.remove();
-    modeChip.textContent = 'live · vertex';
+    modeChip.textContent = 'live';
     modeChip.className = 'chip live';
-    modeNote.textContent = 'Live mode: every step is a real Gemini call through Vertex AI, and the gate pause is the framework’s own.';
+    modeNote.textContent = 'Live mode: each step runs live and holds for your approval.';
     await adkStream({role: 'user', parts: [{text: 'Run the mission.'}]}, render.event);
   }catch(err){
-    writeSentences(sys, 'The crew lost contact with Cloud Run. Run again.');
+    writeSentences(sys, 'The crew lost contact with the mission service. Run again.');
     modeChip.textContent = 'unreachable'; modeChip.className = 'chip';
     runBtn.disabled = false; fieldState('idle'); return;
   }
@@ -981,7 +981,7 @@ async function answerGate(confirmed){
     render.finish();
     return true;
   }catch(err){
-    writeSentences(addEntry('GATE', '', '', false), 'The answer did not reach Cloud Run. The mission is still holding; try again.');
+    writeSentences(addEntry('GATE', '', '', false), 'The answer did not reach the mission service. The mission is still holding; try again.');
     return false;
   }
 }
@@ -996,7 +996,7 @@ approveBtn.addEventListener('click', async () => {
   approveBtn.classList.add('turned'); approveBtn.setAttribute('aria-pressed','true');
   keyArm.disabled = true;
   approveBtn.disabled = true; rejectBtn.disabled = true;
-  writeSentences(gateBody, 'Releasing: the approval is resuming the paused mission on Cloud Run...');
+  writeSentences(gateBody, 'Releasing: your approval is resuming the paused mission...');
   writeSentences(addEntry('GATE', '', '', false), 'Human approval sent. Resuming the paused invocation server-side.');
   consoleEl.scrollTop = consoleEl.scrollHeight;
   const ok = await answerGate(true);
@@ -1011,7 +1011,7 @@ approveBtn.addEventListener('click', async () => {
 rejectBtn.addEventListener('click', async () => {
   resetKeys();
   approveBtn.disabled = true; rejectBtn.disabled = true;
-  writeSentences(gateBody, 'Sending back: the refusal is answering the paused mission on Cloud Run...');
+  writeSentences(gateBody, 'Sending back: your decision is returning the paused mission...');
   writeSentences(addEntry('GATE', '', '', false), 'Human refused the release. The framework never executes the staged action.');
   consoleEl.scrollTop = consoleEl.scrollHeight;
   const ok = await answerGate(false);

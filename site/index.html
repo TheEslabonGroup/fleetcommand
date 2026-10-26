@@ -508,7 +508,7 @@ footer .f-right{margin-left:auto}
 </main>
 
 <footer>
-  <span>Built on Cloudflare Pages + Functions, the Anthropic API, SerpApi, and name.com.</span>
+  <span>Built by The Brockchain, part of Eslabón Group.</span>
   <span class="f-right" id="modeNote">Mode is detected on first run.</span>
 </footer>
 
@@ -840,35 +840,35 @@ async function runMission(){
     // call). Show that reason instead of the unarmed line, which would be false
     // once a key is set.
     modeNote.textContent = data.mode === 'live'
-      ? 'Live mode: each step is a real Claude call.'
+      ? 'Live mode: each step runs live.'
       : data.note
         ? 'Replay mode: ' + data.note + '.'
-        : 'Replay mode: a recorded run of this mission, served honestly until the live key is armed.';
+        : 'Replay mode: a recorded demonstration of this mission.';
     // SCOUT's market lens, shown as its own entry so the search layer is
     // visible and not just inferred from SCOUT's prose. Labelled live or sample
     // exactly like the crew is.
     if(data.market){
       searchChip.hidden = false;
-      searchChip.textContent = 'serpapi ' + data.market;
+      searchChip.textContent = 'market ' + data.market;
       searchChip.className = 'chip ' + (data.market === 'live' ? 'live' : 'sample');
     }
     const body = addEntry(data.agent, data.mode, '', false);
     await typeInto(body, data.output);
     if(step === 'scout' && Array.isArray(data.marketRows) && data.marketRows.length){
-      const mb = addEntry('MARKET / SERPAPI', data.market, '', false);
-      await typeInto(mb, 'Google search: "' + data.marketQuery + '"\n' + data.marketRows.join('\n'));
+      const mb = addEntry('MARKET RESEARCH', data.market, '', false);
+      await typeInto(mb, 'Market search: "' + data.marketQuery + '"\n' + data.marketRows.join('\n'));
     }
     if(step === 'ship' && Array.isArray(data.domainRows) && data.domainRows.length){
-      const db = addEntry('DEPLOY TARGET / NAME.COM', data.domains, '', false);
+      const db = addEntry('DEPLOY TARGET', data.domains, '', false);
       await typeInto(db, 'Registrar check: does this business own its own name?\n' + data.domainRows.join('\n'));
     }
     // The readout: real round trip, real size, and for the two agents that call
     // out, where that answer actually came from.
     let meta = ms(rtt) + '  ' + (data.output || '').length + 'ch';
     if(step === 'scout' && data.market)
-      meta += '  serpapi:' + (data.market === 'live' ? (data.marketCache === 'kv' ? 'live/cached' : 'live') : 'sample');
+      meta += '  market:' + (data.market === 'live' ? (data.marketCache === 'kv' ? 'live/cached' : 'live') : 'sample');
     if(step === 'ship' && data.domains)
-      meta += '  name.com:' + data.domains;
+      meta += '  domain:' + data.domains;
     setMeta(step, meta);
     prior += '\n\n' + data.agent + ':\n' + data.output;
     setAgent(step, step === 'ship' ? 'holding' : 'done', step === 'ship' ? 'holding' : 'done');
