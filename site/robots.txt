@@ -2,3 +2,76 @@ User-agent: *
 Allow: /
 
 Sitemap: https://fleetcommand-2u0.pages.dev/sitemap.xml
+
+# ---------------------------------------------------------------------------
+# AI training, retrieval and answer engines: OUT. Added 2026-08-30 on Brock's
+# call: "i do not want people stealing our ideas and such with ai and just
+# doing it ... we cant stop but we can do our best to stop the scans and
+# learning." Article I, the secret sauce stays secret while the record stays
+# public.
+#
+# BE CLEAR ABOUT WHAT THIS FILE DOES AND DOES NOT DO, because a policy nobody
+# understands gets trusted for more than it is worth:
+#
+#   The EDGE RULE is the enforcement. A Cloudflare rule on this zone blocks
+#   these user agents outright, and that is what actually turns them away.
+#   robots.txt is a REQUEST. It is honoured by the reputable crawlers, which
+#   is most of the ones named here, and ignored by anyone who chooses to.
+#   Neither one stops a person opening the page and pasting it into a prompt.
+#   That was never stoppable and pretending otherwise would be the lie.
+#
+# What this DOES buy: the well behaved crawlers stop scanning and training on
+# it, our intent is on the record in our own words, and the edge rule and this
+# file finally agree. fleetbrain alarms when they do not.
+#
+# Search engines are deliberately NOT blocked here. The ask was to stop the
+# scraping and the training, not to disappear from Google.
+
+# The bare `Disallow:` below is EMPTY ON PURPOSE and it is load bearing. It
+# means "allow everything", and it is here to CLOSE this group. Content-Signal
+# is not an Allow or a Disallow, so without a real rule the group never ends,
+# and the next `User-agent:` line stacks onto this one instead of starting its
+# own. That is the robots.txt grouping spec, and the first draft of this file
+# hit it: `Disallow: /` for GPTBot leaked onto `User-agent: *` and took the
+# whole site dark to Googlebot. Caught by fleetbrain's own parser before it
+# shipped. Do not delete this line.
+User-agent: *
+Content-Signal: ai-train=no, ai-input=no
+Disallow:
+
+User-agent: GPTBot
+Disallow: /
+User-agent: OAI-SearchBot
+Disallow: /
+User-agent: ChatGPT-User
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: Claude-Web
+Disallow: /
+User-agent: Claude-User
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: PerplexityBot
+Disallow: /
+User-agent: Perplexity-User
+Disallow: /
+User-agent: Google-Extended
+Disallow: /
+User-agent: Applebot-Extended
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: Bytespider
+Disallow: /
+User-agent: Amazonbot
+Disallow: /
+User-agent: meta-externalagent
+Disallow: /
+User-agent: FacebookBot
+Disallow: /
+User-agent: PetalBot
+Disallow: /
+User-agent: TikTokSpider
+Disallow: /

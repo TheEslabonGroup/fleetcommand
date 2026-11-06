@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build the Fleet Command link preview card, and the share tags it never had.
+ * Build the On Your Go link preview card, and the share tags it never had.
  * ---------------------------------------------------------------------------
  * WHAT WAS WRONG. This site carried charset, viewport and a description, and
  * nothing else. No og:title, no og:description, no og:image, no twitter tags.
@@ -35,15 +35,51 @@
  * in sequence, and SHIP stopped at the gate. The site says "the gate is not a
  * limitation, it is the product", so the card shows the gate.
  */
+import { CHROME_DEFAULT } from './chrome-bin.mjs';
 import { readFileSync, writeFileSync, readdirSync, unlinkSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { promisify } from 'node:util';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
+
+/* THE CARD IS SQUEEZED BEFORE IT IS HASHED, and the order is the whole point.
+   The filename is the sha256 of the bytes, so optimising the committed PNG by
+   hand made the name a lie and the next build minted a fresh heavy file under
+   a fresh name and deleted the light one. Squeezing here means the name always
+   describes what is actually served.
+   Chrome writes a 24 bit truecolour PNG for what is a flat vector card with a
+   few dozen colours in it, which is how a 1200x630 graphic reached half a
+   megabyte and FAILed the LEAN cap (brock/LEAN-STANDARD.md, image over 500KB).
+   pngquant picks a palette, oxipng repacks it losslessly, and the result is
+   the same picture at a fraction of the bytes. Both are optional: if neither
+   is installed the build still produces a correct, heavy card rather than
+   failing, and says so. */
+function squeezePng(bytes, label) {
+  const tmp = join(tmpdir(), `og-squeeze-${process.pid}-${label}.png`);
+  writeFileSync(tmp, bytes);
+  let out = bytes;
+  try {
+    execFileSync('pngquant', ['--force', '--quality', '70-95', '--speed', '1', '--output', tmp, tmp], { stdio: 'pipe' });
+  } catch { /* pngquant absent, or it refused the quality floor: keep going */ }
+  try {
+    execFileSync('oxipng', ['-o', 'max', '--strip', 'safe', '-q', tmp], { stdio: 'pipe' });
+  } catch { /* oxipng absent: the pngquant result still stands */ }
+  try {
+    const squeezed = readFileSync(tmp);
+    if (squeezed.length > 0 && squeezed.length < out.length) out = squeezed;
+  } catch { /* nothing readable: keep the original bytes */ }
+  try { unlinkSync(tmp); } catch {}
+  if (out === bytes) console.log(`  note: ${label} could not be squeezed (pngquant/oxipng missing?), shipping ${Math.round(bytes.length / 1024)} KB`);
+  return out;
+}
+
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = join(ROOT, 'site');
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = CHROME_DEFAULT;
 const ORIGIN = 'https://fleetcommand-2u0.pages.dev';
 // W/H are CSS pixels: the 1.91:1 box every platform expects. SCALE is the
 // device pixel ratio the card is RENDERED at, so the actual PNG is 2400x1260.
@@ -101,9 +137,7 @@ const FIELD = Array.from({ length: 52 }, () => {
    amber means a human is needed, and it is spent exactly once. */
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:${W}px;height:${H}px}
@@ -164,7 +198,7 @@ const html = `<!doctype html>
   <svg class="field" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
     ${FIELD.map(f => `<line x1="${f.x1}" y1="${f.y1}" x2="${f.x2}" y2="${f.y2}" stroke="${f.teal ? T.teal : T.indigo}" stroke-opacity="${f.o}" stroke-width="1.3" stroke-linecap="round"/>`).join('')}
   </svg>
-  <div class="eyebrow"><span class="dot"></span><b>Fleet Command</b><s>Agentic ops</s></div>
+  <div class="eyebrow"><span class="dot"></span><b>On Your Go</b><s>Agentic ops</s></div>
   <h1>The gate is the <b>product</b>.</h1>
   <p class="lede">Four AI agents do the work. Every consequential action stops at a named human.</p>
   <div class="crew">
@@ -182,39 +216,124 @@ mkdirSync(join(ROOT, 'brand'), { recursive: true });
 const src = join(ROOT, 'brand', 'og-card.html');
 writeFileSync(src, html);
 
+/* THE CARD USES THE SITE'S OWN SELF HOSTED FONTS, SERVED OVER A THROWAWAY
+   LOCAL SERVER, and both halves of that are load bearing.
+   The font cleanup on 2026-09-10 (cd57150) swapped the Google Fonts link for
+   /fonts/fonts.css by HAND EDITING brand/og-card.html, but this script writes
+   that file, so the next build (the On Your Go rename, e608283) quietly put
+   Google back. The link now lives here, where it cannot be undone.
+   The server is the half the hand edit missed. This used to screenshot the
+   template over file://, and under file:// a root relative /fonts/fonts.css
+   means the root of the DISK: no stylesheet, no faces, and the headline falls
+   back to Times. Checked 2026-09-23 by rendering the hand edited template, not
+   assumed. Serving the template and site/fonts from one origin makes /fonts/
+   mean exactly what it means on the live site. It binds 127.0.0.1 only, lives
+   for one screenshot, and answers only the template and files named
+   *.css or *.woff2 directly inside site/fonts (no slash, so no ../ escape).
+   A missing font does not error, it just renders a fallback that still looks
+   like a card, so the build FAILS unless both families were really fetched. */
+const FONTS = join(SITE, 'fonts');
+const fetched = [];
+const server = createServer((req, res) => {
+  const path = new URL(req.url, 'http://127.0.0.1').pathname;
+  const font = path.match(/^\/fonts\/([\w.-]+\.(css|woff2))$/);
+  const file = path === '/og-card.html' ? src : font ? join(FONTS, font[1]) : null;
+  let body = null;
+  try { if (file) body = readFileSync(file); } catch { /* a named file that is missing is a 404 */ }
+  if (!body) { res.writeHead(404).end(); return; }
+  if (font) fetched.push(font[1]);
+  const type = !font ? 'text/html; charset=utf-8' : font[2] === 'css' ? 'text/css' : 'font/woff2';
+  res.writeHead(200, { 'content-type': type }).end(body);
+});
+await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
+
 const tmp = join(ROOT, '.og-tmp.png');
-execFileSync(CHROME, [
-  '--headless=new', '--disable-gpu', '--hide-scrollbars',
-  `--force-device-scale-factor=${SCALE}`, `--window-size=${W},${H}`,
-  '--virtual-time-budget=6000',
-  `--screenshot=${tmp}`, `file://${src}`,
-], { stdio: 'pipe' });
+try {
+  // Async on purpose: execFileSync would block the event loop the server
+  // needs to answer Chrome, and the screenshot would hang or go fontless.
+  await promisify(execFile)(CHROME, [
+    '--headless=new', '--disable-gpu', '--hide-scrollbars',
+    `--force-device-scale-factor=${SCALE}`, `--window-size=${W},${H}`,
+    '--virtual-time-budget=6000',
+    `--screenshot=${tmp}`, `http://127.0.0.1:${server.address().port}/og-card.html`,
+  ]);
+} finally {
+  server.closeAllConnections();
+  server.close();
+}
+for (const family of ['montserrat', 'space-grotesk']) {
+  if (!fetched.some((f) => f.startsWith(family) && f.endsWith('.woff2'))) {
+    try { unlinkSync(tmp); } catch {}
+    throw new Error(`the card never fetched a ${family} face from site/fonts (got: ${fetched.join(', ') || 'nothing'}), so it would ship in a fallback font`);
+  }
+}
 
 /* Flat colour and type, so PNG is genuinely the right container here and
    comes out small. The RISE card is a photograph and goes to JPEG instead. */
-const bytes = readFileSync(tmp);
+const bytes = squeezePng(readFileSync(tmp), 'card');
 unlinkSync(tmp);
 const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 10);
 const file = `og-${hash}.png`;
 writeFileSync(join(SITE, file), bytes);
 
+/* PER PAGE IDENTITY, added 2026-09-03 after the live pages were read back.
+ *
+ * This wrote ONE hardcoded block into every html file in site/, so /google
+ * shipped `og:url` pointing at "/" while its own `rel=canonical` said
+ * "/google". Two facts about the same page, in the same file, disagreeing:
+ * paste the Google build's link anywhere and the card claims to BE the
+ * homepage. It also gave that page the root's title and description, so the
+ * ADK build had no identity in a link card at all.
+ *
+ * press.html looked correct only because it was written AFTER the last run of
+ * this script and so had never been touched by it. It was not safe, it was
+ * lucky: its hand written tags also HARDCODE `og-d8f521af3c.png`, and the
+ * stale sweep at the bottom of this file DELETES the old card every time the
+ * hash changes. The next rebuild would have pointed the press kit's card at a
+ * 404, which the fleet og rule names as the worst case because the source
+ * still reads correct. Those hand written tags are gone now and this script is
+ * the ONE WRITER for all of them.
+ *
+ * A page not listed here falls back to the site identity with a root og:url,
+ * which is what 404.html should say.
+ */
+const SITE_TITLE = 'On Your Go';
+const SITE_DESC = 'An agentic operations command center. A crew of AI agents does the work; a human approval gate holds the trigger.';
+
+const PAGES = {
+  'index.html': { path: '/' },
+  'google.html': {
+    path: '/google',
+    title: 'On Your Go on Google ADK',
+    desc: 'The same four agent mission and the same human approval gate, built on the Google Agent Development Kit and Gemini.',
+    tweet: 'The same crew and the same gate, rebuilt on Google ADK and Gemini.',
+  },
+  'press.html': {
+    path: '/press',
+    title: 'On Your Go: press kit',
+    desc: 'The demo film, product screenshots, a one page brief and the share card.',
+    tweet: 'The demo film, product screenshots, a one page brief and the share card.',
+  },
+  '404.html': { path: '/' },
+};
+
 /* The whole share block, not just the image: this site had NONE of it. */
-const TAGS = (url) => [
+const TAGS = (url, meta) => [
   `<meta property="og:type" content="website">`,
-  `<meta property="og:site_name" content="Fleet Command">`,
-  `<meta property="og:title" content="Fleet Command">`,
-  `<meta property="og:description" content="An agentic operations command center. A crew of AI agents does the work; a human approval gate holds the trigger.">`,
-  `<meta property="og:url" content="${ORIGIN}/">`,
+  `<meta property="og:site_name" content="${SITE_TITLE}">`,
+  `<meta property="og:title" content="${meta.title || SITE_TITLE}">`,
+  `<meta property="og:description" content="${meta.desc || SITE_DESC}">`,
+  `<meta property="og:url" content="${ORIGIN}${meta.path}">`,
   `<meta property="og:image" content="${url}">`,
   // The real pixel dimensions of the file, not the CSS box it was laid out in.
   // Same 1.91:1 ratio either way, but a scraper that trusts these for layout
   // should be told the truth about what it is fetching.
   `<meta property="og:image:width" content="${W * SCALE}">`,
   `<meta property="og:image:height" content="${H * SCALE}">`,
-  `<meta property="og:image:alt" content="Fleet Command: SCOUT, AUDIT and MEDIC feed into SHIP, which holds at the human approval gate.">`,
+  `<meta property="og:image:alt" content="${SITE_TITLE}: SCOUT, AUDIT and MEDIC feed into SHIP, which holds at the human approval gate.">`,
   `<meta name="twitter:card" content="summary_large_image">`,
-  `<meta name="twitter:title" content="Fleet Command">`,
-  `<meta name="twitter:description" content="Four AI agents do the work. Every consequential action stops at a named human.">`,
+  `<meta name="twitter:title" content="${meta.title || SITE_TITLE}">`,
+  `<meta name="twitter:description" content="${meta.tweet || meta.desc || SITE_DESC}">`,
   `<meta name="twitter:image" content="${url}">`,
 ];
 
@@ -229,8 +348,9 @@ for (const f of pages) {
   // one. Matching the bare marker silently STACKED a second block on every
   // re-run, which is exactly what happened before this was caught.
   s = s.replace(/\n?\s*<!-- share:start[^>]*-->[\s\S]*?<!-- share:end -->/g, '');
+  const meta = PAGES[f] || { path: '/' };
   const block = `\n  <!-- share:start generated by tools/build-og.mjs -->\n`
-    + TAGS(url).map((t) => '  ' + t).join('\n')
+    + TAGS(url, meta).map((t) => '  ' + t).join('\n')
     + `\n  <!-- share:end -->`;
   if (!/<\/head>/i.test(s)) throw new Error(`${f} has no </head> to write into`);
   s = s.replace(/<\/head>/i, `${block}\n</head>`);

@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>On Your Go on Google Cloud, the agentic ops command center</title>
+<meta name="description" content="The same agentic ops crew, Google-native: ADK agents on Cloud Run, Gemini through Vertex AI, and a human approval gate the framework itself enforces.">
+<link rel="canonical" href="https://fleetcommand-2u0.pages.dev/google">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- Structured data. Kept OUTSIDE the share:start/share:end markers on purpose:
+     tools/build-og.mjs strips and rewrites everything between those markers, so
+     anything living in there would vanish on the next card rebuild.
+     Claims only what is true. No offers, no ratings, nothing invented. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "On Your Go on Google Cloud",
+  "url": "https://fleetcommand-2u0.pages.dev/google",
+  "description": "An agentic operations command center on Google's stack: four ADK agents on Cloud Run scout a site, rank its defects, draft the fix, and stage the deploy, and the human approval gate is enforced by the framework itself.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any modern web browser",
+  "isAccessibleForFree": true,
+  "creator": { "@id": "https://thebrockchain.com/#brock" }
+}
+</script>
+<!-- HowTo, deliberately NOT FAQPage. Google requires FAQ question and answer
+     text to be VISIBLE on the page that carries the markup, and this page is
+     one screen with zero scroll (the fleet ONE-SCREEN rule), so an honest FAQ
+     block has nowhere to live here. Marking up questions a visitor cannot read
+     would be a claim about content that does not exist, which is the one thing
+     the fleet's honesty rules will not do for a ranking signal.
+     Every step below IS on screen: the four agents are the crew column, and
+     the approval step is the gate panel. The gate reads HowTo as answerable. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How On Your Go runs an operations mission",
+  "description": "Four AI agents work a site in sequence, and the deployment holds until a human approves it.",
+  "totalTime": "PT2M",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "SCOUT does reconnaissance",
+      "text": "SCOUT maps the target site and reports what it is and the observations that matter most."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "AUDIT ranks the defects",
+      "text": "AUDIT turns the reconnaissance into a ranked defect list, each finding marked high, medium or low severity."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "MEDIC drafts the fix",
+      "text": "MEDIC writes the fix for the highest severity finding as a real diff. It drafts only and never applies the change."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 4,
+      "name": "SHIP stages the deploy and holds",
+      "text": "SHIP summarizes exactly what would deploy and what could go wrong, then holds for human approval instead of releasing."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 5,
+      "name": "A person decides",
+      "text": "Approve releases the staged deploy. Send back returns the fix to MEDIC with the objection attached. Nothing ships without that click."
+    }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+:root{
+  --bg:#0b0e15; --charcoal:#0d1119; --surf:#141926; --surf-hi:#1a2032; --line:#232b45;
+  --ink:#eef1fb; --cream:#eaf0f7; --muted:#8b93af; --stone:#79839a; --faint:#565f7c;
+  --indigo:#7c6cff; --indigo-d:#5a4bd6; --indigo-soft:#a99dff;
+  --teal:#2dd4bf; --go:#2dd4bf; --teal-d:#1f9e8f;
+
+  /* AMBER IS RESERVED. It appears on this screen at exactly one moment: when
+     SHIP holds at the approval gate. No chip, no label, no status may wear it.
+     That is what teaches the colour a meaning, and it is the whole design idea.
+     See DESIGN.md before spending it anywhere else. */
+  --amber:#f5b23d;
+
+  --disp:'Space Grotesk',sans-serif; --body:'Montserrat',sans-serif;
+
+  --dur-fast:150ms; --dur:220ms; --dur-slow:380ms;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --ease-out:cubic-bezier(0,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body);
+  height:100vh; overflow:hidden; display:flex; flex-direction:column;
+  font-size:clamp(12px,1.05vw,15px);
+}
+/* One soft radial behind the stage so the page is not a grid of flat
+   rectangles. Fixed, non-interactive, costs nothing and never animates. */
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+  background:
+    radial-gradient(60% 50% at 50% 34%, rgba(124,108,255,.10), transparent 70%),
+    radial-gradient(40% 40% at 82% 82%, rgba(45,212,191,.05), transparent 70%);
+}
+header,main,footer{position:relative; z-index:2}
+header{
+  display:flex; align-items:center; gap:1rem;
+  padding:.7rem 1.2rem; border-bottom:1px solid var(--line); background:var(--charcoal);
+}
+/* The display moment. Real scale and tight tracking here so everything else can
+   stay quiet; contrast is what makes a page look decided rather than themed. */
+.mark{font-family:var(--disp); font-weight:700; font-size:1.62em; letter-spacing:-.005em; line-height:1}
+.mark b{color:var(--indigo)}
+.sub{color:var(--muted); font-size:.85em}
+.spacer{flex:1}
+.chip{
+  font-size:.72em; letter-spacing:.12em; padding:.28em .7em; border-radius:999px;
+  border:1px solid var(--line); color:var(--muted); text-transform:uppercase;
+}
+.chip.live{border-color:var(--teal); color:var(--teal)}
+/* Deliberately NOT amber. A mode label is housekeeping; amber belongs to the
+   gate alone. Replay and sample are honest states, not warnings. */
+.chip.replay,.chip.sample{border-color:var(--line); color:var(--stone)}
+.chip[hidden]{display:none}
+button.run{
+  font-family:var(--disp); font-weight:600; font-size:.95em; letter-spacing:.04em;
+  background:var(--indigo); color:#fff; border:0; border-radius:.55em;
+  padding:.55em 1.3em; cursor:pointer; transition:background .15s;
+}
+button.run:hover{background:var(--indigo-d)}
+button.run:disabled{background:var(--faint); cursor:default}
+main{
+  flex:1; display:grid; min-height:0;
+  grid-template-columns:1fr 2.1fr 1.15fr; gap:.8rem; padding:.8rem 1.2rem;
+}
+.col{display:flex; flex-direction:column; gap:.8rem; min-height:0}
+/* FROSTED, so the field runs UNDER the whole interface instead of only in the
+   margins. Three opaque boxes on a dark ground is a dashboard; one continuous
+   surface with something alive behind it is a place. The blur is what keeps it
+   legible: the field never competes with a word of text, it only gives the
+   glass something to be glass over.
+   Alpha is deliberately high (.62 to .70). Lower looked better in a still and
+   started costing contrast on the console, which is the one panel a judge
+   actually has to read. */
+.panel{
+  background:rgba(20,25,38,.62);
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);
+  backdrop-filter:blur(18px) saturate(1.25);
+  border:1px solid var(--line); border-radius:.7em;
+  padding:.85em .95em; display:flex; flex-direction:column; min-height:0;
+  transition:opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+}
+.col:first-child .panel{background:rgba(13,17,25,.66)}
+#stage{
+  background:rgba(26,32,50,.70);
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 18px 50px -24px rgba(0,0,0,.9);
+}
+header{background:rgba(13,17,25,.72);
+  -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px)}
+/* Blur is expensive to composite and the browsers that lack it are the ones
+   least able to afford it, so they get solid panels and lose nothing but the
+   glass. */
+@supports not (backdrop-filter: blur(1px)){
+  .panel{background:var(--surf)}
+  .col:first-child .panel{background:var(--charcoal)}
+  #stage{background:var(--surf-hi)}
+  header{background:var(--charcoal)}
+}
+.panel h2{
+  font-family:var(--disp); font-size:.78em; font-weight:600; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--stone); margin-bottom:.7em;
+}
+.agent{
+  display:flex; align-items:center; gap:.7em; padding:.55em .6em;
+  border:1px solid var(--line); border-radius:.55em; margin-bottom:.55em;
+  transition:border-color .2s, background .2s;
+}
+.agent:last-child{margin-bottom:0}
+.agent .dot{width:.6em;height:.6em;border-radius:50%;background:var(--faint);flex:none}
+.agent.working{border-color:var(--indigo); background:rgba(124,108,255,.07)}
+.agent.working .dot{background:var(--indigo); animation:pulse 1s infinite}
+.agent.done{border-color:var(--teal-d)}
+.agent.done .dot{background:var(--teal)}
+.agent.holding{border-color:var(--amber)}
+.agent.holding .dot{background:var(--amber); animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.agent .aname{font-family:var(--disp); font-weight:600; letter-spacing:.08em}
+.agent .arole{color:var(--muted); font-size:.8em}
+.agent .abody{min-width:0}
+/* LIVE TELEMETRY, NOT DECORATION. Every value on this line is measured on the
+   client as the step actually runs: real elapsed milliseconds, the real
+   character count of what came back, and for the two agents that reach outside,
+   whether the call was served live, from cache, or from labelled sample data.
+   Nothing here is invented and nothing loops. The crew reads as alive because
+   it is reporting, which is what an ops cockpit should do, not because
+   something is animating at you. */
+.agent .ameta{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:.68em; letter-spacing:.02em; color:var(--faint);
+  margin-top:.15em; min-height:1.1em; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.agent.working .ameta{color:var(--indigo-soft)}
+.agent.done .ameta{color:var(--stone)}
+.agent.holding .ameta{color:var(--amber)}
+.agent .astate{margin-left:auto; font-size:.72em; letter-spacing:.1em; color:var(--stone); text-transform:uppercase}
+#console{flex:1; overflow-y:auto; font-size:.92em; line-height:1.55; scrollbar-width:thin}
+#console .entry{margin-bottom:1em}
+#console .tag{
+  font-family:var(--disp); font-weight:600; font-size:.8em; letter-spacing:.12em;
+  color:var(--indigo-soft); margin-bottom:.25em; display:flex; gap:.6em; align-items:baseline;
+}
+#console .tag .mode{font-size:.85em; color:var(--stone); letter-spacing:.08em}
+#console .tag .mode.live{color:var(--teal)}
+#console .body{color:var(--cream); white-space:pre-wrap}
+#console .sys{color:var(--stone); font-style:italic}
+.target p{color:var(--muted); font-size:.86em; line-height:1.5}
+.target .tname{color:var(--cream); font-weight:600}
+/* ---- THE ONE MOTION IDEA ----------------------------------------------
+   SHIP holds, and the screen answers: the crew and the target settle back a
+   step, the gate lifts and takes the only amber on the page, and Approve
+   becomes the only lit control. Nothing else on this screen animates on its
+   own. Remove this and the product's whole point becomes a border colour. */
+#gate{border-color:var(--line); transition:border-color var(--dur-slow) var(--ease),
+      box-shadow var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease-out)}
+#gate.armed{
+  border-color:var(--amber);
+  box-shadow:0 0 0 1px rgba(245,178,61,.35), 0 22px 60px -26px rgba(245,178,61,.55);
+  transform:translateY(-4px) scale(1.012);
+}
+body.gated .col:first-child .panel{opacity:.55; transform:scale(.985)}
+body.gated .why{opacity:.55}
+#gate .ghead{
+  font-family:var(--disp); font-weight:700; font-size:1.5em; letter-spacing:-.01em;
+  line-height:1.1; color:var(--ink); margin-bottom:.35em;
+  opacity:0; transform:translateY(6px);
+  transition:opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+#gate.armed .ghead{opacity:1; transform:none; color:var(--amber)}
+#gate .gbody{color:var(--muted); font-size:.88em; line-height:1.5; flex:1}
+#gate .gactions{display:flex; gap:.6em; margin-top:.8em}
+#gate button{
+  flex:1; font-family:var(--disp); font-weight:600; font-size:.88em;
+  border-radius:.5em; padding:.6em 0; cursor:pointer; border:1px solid var(--line);
+  background:transparent; color:var(--faint);
+  transition:background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease),
+             color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+             box-shadow var(--dur) var(--ease);
+}
+/* TWO KEY IGNITION (docs/PREMISE.md). The keys are the only lit controls at
+   the hold, and the amber lands on KEY 1 because arming IS the hold moment:
+   the reserved colour still appears at exactly one moment, worn by hardware
+   now instead of a button fill. Turned keys go the go colour. */
+#gate .ignition{align-items:flex-end}
+#gate .keyslot{display:flex; flex-direction:column; align-items:center; gap:.4em; flex:0 0 auto}
+#gate button.key{
+  flex:0 0 auto; width:3.3em; height:3.3em; border-radius:50%; padding:0;
+  display:grid; place-items:center;
+  background:radial-gradient(circle at 35% 28%, var(--surf-hi), var(--charcoal) 72%);
+  border:1px solid var(--line); box-shadow:inset 0 2px 7px rgba(0,0,0,.55);
+}
+#gate button.key svg{width:1.75em; height:1.75em; color:var(--faint); display:block;
+  transform:rotate(0deg);
+  transition:transform .3s cubic-bezier(.3,1.5,.4,1), color var(--dur-fast) var(--ease)}
+#gate button.key.turned svg{transform:rotate(90deg); color:var(--go)}
+#gate button.key.turned{border-color:var(--teal); animation:none;
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 16px -5px rgba(45,212,191,.65)}
+#gate.armed button.key:not(:disabled):not(.turned)#keyArm{border-color:var(--amber);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 16px -5px rgba(245,178,61,.7);
+  animation:keyBeckon 1.6s ease-in-out infinite}
+#gate.armed button.key:not(:disabled):not(.turned)#keyArm svg{color:var(--amber)}
+#gate.armed button.key:not(:disabled):not(.turned)#approveBtn{border-color:var(--teal);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 16px -5px rgba(45,212,191,.65)}
+#gate.armed button.key:not(:disabled):not(.turned)#approveBtn svg{color:var(--go)}
+#gate .klabel{font-family:var(--disp); font-size:.56em; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--faint); white-space:nowrap}
+@keyframes keyBeckon{
+  0%,100%{box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 10px -5px rgba(245,178,61,.5)}
+  50%{box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 20px -4px rgba(245,178,61,.85)}}
+#gate.armed button.reject{border-color:var(--line); color:var(--muted)}
+#gate.armed button.reject:hover{border-color:var(--stone); color:var(--ink)}
+#gate button:disabled{cursor:default; opacity:.45; transform:none; box-shadow:inset 0 2px 7px rgba(0,0,0,.55)}
+#gate button.key.turned:disabled{opacity:.8}
+@media (prefers-reduced-motion: reduce){
+  #gate button.key svg{transition:none}
+  #gate.armed button.key:not(:disabled):not(.turned)#keyArm{animation:none}}
+
+
+
+/* ---- THE FIELD --------------------------------------------------------
+   The cockpit had no presence at rest. It was correct and it was quiet, and
+   quiet loses in a feed of dozens of entries. 61% of Awwwards Site of the Day
+   winners in Q1 2026 are real-time graphics, and the two Developer Award
+   winners this week hand rolled theirs, so this is hand rolled too.
+
+   It is NOT wallpaper, and that distinction is the whole reason it is allowed
+   to exist on a screen whose one motion idea is the gate. The field is the
+   fleet the crew watches, and it answers the mission:
+     idle     slow drift, dim, alive but patient
+     working  agitated and brighter, the system under load
+     GATE     it FREEZES, completely, and the colour goes out of it
+   That freeze is the point. When a human is needed, the whole world stops,
+   not just a panel. It makes the slam bigger than the slam could ever be
+   on its own.
+
+   Costs one canvas and no dependency. Sleeps when the tab is hidden so it
+   never burns a phone battery in a background tab. */
+#bg{position:fixed; inset:0; z-index:0; pointer-events:none;
+    transition:opacity 900ms linear, filter 900ms linear}
+body.gated #bg{filter:saturate(0) brightness(.55); opacity:.5}
+@media (prefers-reduced-motion: reduce){ #bg{display:none} }
+
+/* ---- THE SLAM ---------------------------------------------------------
+   Hand rolled, no library, ~90 lines of canvas. The two Developer Award
+   winners on the Awwwards portfolio page this week ship raw canvas and a 10kb
+   WebGL wrapper respectively; the award for technique goes to the people who
+   wrote it themselves, and this fleet already hand rolls shaders elsewhere.
+
+   WHAT IT DOES. When SHIP holds, a pressure wave leaves the gate and washes
+   the screen. Colour drains out of everything the wave has passed, so the
+   whole interface visibly surrenders to the one panel that needs a person.
+   It fires ONCE, on a real state change, and never loops. Take it out and the
+   product's entire thesis goes back to being a border colour. */
+#fx{
+  position:fixed; inset:0; z-index:50; pointer-events:none;
+  opacity:0; transition:opacity 300ms linear;
+}
+/* Instant ON, faded OFF. The layer used to fade IN over 240ms, which is exactly
+   the window where the wave is brightest, so the canvas was painting its
+   strongest frames underneath its own fade and the front was nearly invisible
+   on camera. The animation already handles its own falloff; the element must
+   not second-guess it. */
+#fx.on{opacity:1; transition:none}
+/* The drain. Everything except the gate loses its colour and steps back while
+   a person is deciding. `filter` is the honest tool for this one: it is a
+   single one-shot transition on a static one-screen layout, not a loop. */
+header,main,footer{
+  transition:filter 620ms cubic-bezier(.2,.7,.2,1), transform 620ms cubic-bezier(.2,.7,.2,1);
+}
+body.slammed header,body.slammed footer{filter:saturate(.12) brightness(.72)}
+body.slammed .col:first-child,body.slammed #stage{filter:saturate(.1) brightness(.62)}
+/* What the screen settles BACK to once the wave has passed: deferential, still
+   clearly secondary to the gate, and fully readable. */
+body.gated:not(.slammed) header,body.gated:not(.slammed) footer{filter:saturate(.55)}
+body.gated:not(.slammed) #stage{filter:saturate(.8)}
+/* The gate is the exception. It keeps every bit of its colour, which is the
+   whole point of draining everything else. */
+body.slammed #gate{filter:none}
+body.gated #gate.armed{
+  transform:translateY(-6px) scale(1.028);
+  box-shadow:0 0 0 1px rgba(245,178,61,.55),
+             0 0 90px -10px rgba(245,178,61,.45),
+             0 30px 70px -28px rgba(245,178,61,.75);
+}
+@media (prefers-reduced-motion: reduce){
+  #fx{display:none}
+  body.slammed header,body.slammed footer,
+  body.slammed .col:first-child,body.slammed #stage{filter:saturate(.35)}
+}
+
+/* Some people get motion sick. State changes stay instant for them; nothing
+   above is load bearing on the animation itself, only on the end state. */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+}
+.why p{color:var(--muted); font-size:.86em; line-height:1.55}
+.why b{color:var(--cream)}
+footer{
+  padding:.5rem 1.2rem; border-top:1px solid var(--line); background:var(--charcoal);
+  color:var(--faint); font-size:.78em; display:flex; gap:1em;
+}
+footer .f-right{margin-left:auto}
+/* NARROW: RELEASE THE ONE SCREEN CLAMP, do not just let it scroll.
+   This block used to say `body{overflow:auto}` and nothing else, which was a
+   fix that fixed nothing: `body{height:100vh}` above stayed in force, so the
+   body was still exactly one viewport tall and there was no overflow for
+   `auto` to scroll. The three columns stacked, needed more room than 100vh,
+   and every min-height:0 in the chain (main, .col, .panel, all correct for a
+   desktop cockpit) let them shrink under their own content instead of pushing
+   the page taller. Measured at 390 wide: The Crew hid 52px, which was the
+   whole SHIP row, .why hid 32px and main hid 18px, and NONE of it could be
+   scrolled to. The last agent in a four agent crew was simply not on the page.
+
+   It also made the gate blind rather than merely wrong: jack measures one
+   screen from scrollHeight, a clamped body reports scrollHeight === clientHeight,
+   so the sweep read "1 screens, inside the allowance" on a page hiding four
+   panels' worth of content. A clamp does not fit a page, it hides the part
+   that did not fit. Scale or reflow, never clamp.
+
+   So height goes to auto with the viewport as a FLOOR (svh, because 100vh on
+   iOS measures past the browser chrome), and the min-height:0 shrink rules are
+   released for this band only. The desktop cockpit above is untouched: one
+   screen, zero scroll, still true at 1440x900, which is the width the rule
+   names. Mobile is allowed about a screen and a half and now uses it honestly. */
+@media (max-width:900px){
+  body{height:auto; min-height:100svh; overflow:auto}
+  main{grid-template-columns:1fr; overflow:visible; min-height:auto}
+  .col,.panel{min-height:auto}
+  /* The console is flex:1 of a formerly fixed height column. With the column
+     free to grow it would otherwise collapse to its content and lose the
+     terminal feel the mission log needs while it streams. */
+  #console{min-height:9.5em}
+}
+
+/* SENTENCE LINES (BROCK/WRITING.md). One sentence per line. A sentence too long
+   for the screen balances into even lines instead of one long line plus an orphan
+   word. The break lands where the MEANING breaks, never where the box runs out.
+   CHILD selector, so a nested accent span is never blocked onto its own line. */
+.sentences > span{display:block;text-wrap:balance}
+/* TWO SENTENCES THAT SHARE A LINE WHILE THEY FIT (WRITING.md 3): the footer
+   credit reads as one line at desktop width; on a phone each sentence drops
+   WHOLE to its own line instead of breaking mid sentence. */
+.inline-sentences > span{display:inline-block;text-wrap:balance}
+/* THE GOOGLE HEADER CARRIES ONE MORE CHIP THAN THE COCKPIT'S, and on a phone
+   that extra chip squeezed the wordmark to "ON YOUR / GO", the chip to three
+   lines and the mode note to four, each ending on one word. A wordmark and a
+   chip are one phrase, so they never wrap; under 900px the header and footer
+   wrap their ROWS instead: title on top, chips and Run on the row below. */
+.mark,.chip{white-space:nowrap}
+.sub{text-wrap:balance}
+@media (max-width:900px){
+  header{flex-wrap:wrap; row-gap:.5rem}
+  footer{flex-wrap:wrap; row-gap:.25rem}
+}
+
+/* Keep the phone introduction legible without squeezing it between controls. */
+@media (max-width:600px){
+  header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.5rem .75rem;align-items:start;padding:.8rem 1rem}
+  header>div:first-child{grid-column:1 / -1;min-width:0}
+  header .mark{white-space:nowrap}
+  header .sub{font-size:clamp(10px,2.7vw,12px);line-height:1.5;margin-top:.35rem;text-wrap:balance}
+  header .sub>span{display:block;white-space:nowrap}
+  header .spacer{display:none}
+  header .chip{grid-column:1;grid-row:2;align-self:center;justify-self:start}
+  header #searchChip{grid-row:3}
+  header button.run{grid-column:2;grid-row:2;white-space:nowrap;min-height:44px}
+}
+</style>
+
+  <!-- share:start generated by tools/build-og.mjs -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="On Your Go">
+  <meta property="og:title" content="On Your Go on Google ADK">
+  <meta property="og:description" content="The same four agent mission and the same human approval gate, built on the Google Agent Development Kit and Gemini.">
+  <meta property="og:url" content="https://fleetcommand-2u0.pages.dev/google">
+  <meta property="og:image" content="https://fleetcommand-2u0.pages.dev/og-4d4f7d8333.png">
+  <meta property="og:image:width" content="2400">
+  <meta property="og:image:height" content="1260">
+  <meta property="og:image:alt" content="On Your Go: SCOUT, AUDIT and MEDIC feed into SHIP, which holds at the human approval gate.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="On Your Go on Google ADK">
+  <meta name="twitter:description" content="The same crew and the same gate, rebuilt on Google ADK and Gemini.">
+  <meta name="twitter:image" content="https://fleetcommand-2u0.pages.dev/og-4d4f7d8333.png">
+  <!-- share:end -->
+<link data-eslabon-assets="css" rel="stylesheet" href="/assets/eslabon-signature/v001-db87eb241765/signature.css"><style>.esig{flex-shrink:0;position:relative;z-index:2}</style></head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+<header>
+  <div>
+    <h1 class="mark"><a href="/google" style="color:inherit;text-decoration:none">ON YOUR <b>GO</b></a></h1>
+    <div class="sub">The same crew, Google-native: ADK agents on Cloud Run, Gemini through Vertex AI.</div>
+  </div>
+  <div class="spacer"></div>
+  <!-- Hidden until a mission reports, so the opening frame stays as recorded. -->
+  <span class="chip">adk · cloud run</span>
+  <span class="chip" id="searchChip" hidden>search</span>
+  <span class="chip" id="modeChip">standby</span>
+  <button class="run" id="runBtn">Run mission</button>
+</header>
+
+<main>
+  <div class="col">
+    <section class="panel">
+      <h2>The Crew</h2>
+      <div class="agent" id="ag-scout"><span class="dot"></span><div class="abody"><div class="aname">SCOUT</div><div class="arole">Reconnaissance</div><div class="ameta"></div></div><span class="astate">idle</span></div>
+      <div class="agent" id="ag-audit"><span class="dot"></span><div class="abody"><div class="aname">AUDIT</div><div class="arole">Inspection</div><div class="ameta"></div></div><span class="astate">idle</span></div>
+      <div class="agent" id="ag-medic"><span class="dot"></span><div class="abody"><div class="aname">MEDIC</div><div class="arole">Fix drafting</div><div class="ameta"></div></div><span class="astate">idle</span></div>
+      <div class="agent" id="ag-ship"><span class="dot"></span><div class="abody"><div class="aname">SHIP</div><div class="arole">Deployment</div><div class="ameta"></div></div><span class="astate">idle</span></div>
+    </section>
+    <section class="panel target">
+      <h2>Mission Target</h2>
+      <p class="sentences"><span><span class="tname">Harbor Lane Bakery</span> (a fictional demo site, synthetic on purpose). </span><span>Four pages, a broken order form, no security headers, a six second load. </span><span>The crew finds it, drafts the fix, and stages the ship.</span></p>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="panel" id="stage" style="flex:1">
+      <h2>Mission Console</h2>
+      <div id="console">
+        <div class="entry"><div class="body sys sentences"><span>Crew standing by on Cloud Run. </span><span>Run the mission to watch four ADK agents work a target in sequence: recon, inspection, fix drafting, and a staged deploy that stops at the human gate. </span><span>On this build the hold is server-side: the framework refuses to execute the release until a person answers. </span><span>That is the product.</span></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="panel" id="gate">
+      <h2>Approval Gate</h2>
+      <div class="ghead" id="gateHead">Your call.</div>
+      <div class="gbody sentences" id="gateBody"><span>Nothing staged. </span><span>When SHIP stages a deploy the framework pauses the mission server-side, and the staged action cannot execute until a human answers here. </span><span>AI drafts; people decide.</span></div>
+      <!-- TWO KEY IGNITION (docs/PREMISE.md): the human gate as hardware.
+           Releasing a staged deploy takes two deliberate turns: KEY 1 arms,
+           KEY 2 releases. Send back stays an ordinary button, because only
+           release is consequential. -->
+      <div class="gactions ignition">
+        <div class="keyslot">
+          <button class="key" id="keyArm" disabled aria-pressed="false" aria-label="Key one, arm the release. Press to turn."><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="3.2"/><path d="M20 19.5 L20 34 M20 26 L26 26 M20 31.5 L24.5 31.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg></button>
+          <span class="klabel">Key 1 · Arm</span>
+        </div>
+        <div class="keyslot">
+          <button class="key" id="approveBtn" disabled aria-pressed="false" aria-label="Key two, release the deploy. Press to turn."><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="3.2"/><path d="M20 19.5 L20 34 M20 26 L26 26 M20 31.5 L24.5 31.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg></button>
+          <span class="klabel">Key 2 · Release</span>
+        </div>
+        <button class="reject" id="rejectBtn" disabled>Send back</button>
+      </div>
+    </section>
+    <section class="panel why" style="flex:1">
+      <h2>Why This Matters</h2>
+      <p class="sentences"><span><b>Small teams cannot staff an ops crew.</b> </span><span>On Your Go gives one person four specialists that never sleep: recon, audit, fixes, and deploys.</span></p>
+      <p style="margin-top:.6em" class="sentences"><span><b>Autonomy without the gate is a liability.</b> </span><span>Every consequential action stops at a named human, and on ADK the pause is the framework's own: a rejected release never executes at all. </span><span>The gate is not a limitation of the product. </span><span>The gate is the product.</span></p>
+      <p style="margin-top:.6em" class="sentences"><span><b>This engine runs a real fleet.</b></span><span>The same pattern operates a private production ops room managing dozens of live sites today.</span></p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span class="inline-sentences"><span>Built by The Brockchain, part of Eslabón Group.</span> <span>Every release waits for your approval.</span></span>
+  <span class="f-right" id="modeNote">Mode is detected on first run.</span>
+</footer>
+
+<script>
+function splitSentences(text) {
+  // One sentence per span, every character kept. A sentence ends at . ! ? (and
+  // a closing quote or bracket) before space and a capital, a digit or an
+  // opening quote, so "3.5", "$9.99" and "a.m." never split. This replaced a
+  // matcher that silently DROPPED the words before any such period
+  // ("Replaced 3.5 ton unit." read "5 ton unit."), BROCK/WRITING.md 4b, 2026-10-07.
+  var s = String(text), out = [], start = 0, m,
+      END = /[.!?]+["'\u201d\u2019)\]]*\s+(?=["'\u201c\u2018(\[]?[A-Z0-9])/g,
+      ABBR = /(?:^|\s)(?:e\.g|i\.e|a\.m|p\.m|vs|etc|Mr|Mrs|Ms|Dr|St|No|Inc|Ltd|Co)\.$/i;
+  while ((m = END.exec(s))) {
+    if (ABBR.test(s.slice(0, m.index + 1))) continue;
+    out.push(s.slice(start, END.lastIndex));
+    start = END.lastIndex;
+  }
+  if (start < s.length) out.push(s.slice(start));
+  return out.length ? out : [s];
+}
+
+// ?pace controls RENDER SPEED ONLY. The mission itself is identical in every
+// mode: the same four agents make the same calls and return the same content.
+//   video  stretches typing to the demo voice-over timeline, with a breath
+//          between agents
+//   fast   renders near-instantly, used for the demo video's cold open where
+//          the mission has to reach the gate in seconds so the slam can be the
+//          first thing on screen
+// Nothing is skipped or faked in either one.
+const PACE = new URLSearchParams(location.search).get('pace');
+const PACE_VIDEO = PACE === 'video';
+const PACE_FAST = PACE === 'fast';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const STEPS = ['scout','audit','medic','ship'];
+const ROLE_VERBS = {scout:'scouting the target', audit:'inspecting findings', medic:'drafting the fix', ship:'staging the deploy'};
+const consoleEl = document.getElementById('console');
+const runBtn = document.getElementById('runBtn');
+const gate = document.getElementById('gate');
+const gateBody = document.getElementById('gateBody');
+const gateHead = document.getElementById('gateHead');
+// ONE SENTENCE PER LINE FOR TEXT THE SCRIPT WRITES (BROCK/WRITING.md 4b). A
+// plain textContent write would erase the sentence spans the markup carries, so
+// the gate's status copy goes through here. The separating space stays INSIDE
+// each span, so textContent still reads back as the original string.
+function writeSentences(el, text){
+  el.textContent = '';
+  el.classList.add('sentences');
+  const parts = splitSentences(text);
+  parts.forEach(function(part, i){
+    const span = document.createElement('span');
+    span.textContent = part.trim() + (i < parts.length - 1 ? ' ' : '');
+    el.appendChild(span);
+  });
+  return el.lastChild;
+}
+const approveBtn = document.getElementById('approveBtn');
+const rejectBtn = document.getElementById('rejectBtn');
+const keyArm = document.getElementById('keyArm');
+function resetKeys(){ keyArm.disabled = true; keyArm.classList.remove('turned'); keyArm.setAttribute('aria-pressed','false'); approveBtn.classList.remove('turned'); approveBtn.setAttribute('aria-pressed','false'); }
+const modeChip = document.getElementById('modeChip');
+const searchChip = document.getElementById('searchChip');
+const modeNote = document.getElementById('modeNote');
+
+
+
+// Declared HERE, above both the field and the slam, because both read it at
+// module init. It used to live down in the slam block, and the field's first
+// paint hit the temporal dead zone and threw, which killed the whole module:
+// no mission, no gate, no console, a page that looked fine and did nothing.
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---- THE FIELD -----------------------------------------------------------
+// Hand rolled, no dependency. A slow current of short strokes behind the
+// cockpit: the fleet the crew is watching. It reacts to mission state, which is
+// what earns it a place on a screen whose one motion idea is the gate.
+//   idle     slow, dim
+//   working  faster and brighter, the system under load
+//   frozen   the gate armed and a person is needed, so the world stops dead
+const bg = document.getElementById('bg');
+const bgc = bg.getContext('2d');
+let strokes = [], bgRaf = 0, energy = 0, targetEnergy = 0, frozen = false;
+
+function seedField(){
+  const d = Math.min(devicePixelRatio || 1, 2);
+  bg.width = Math.round(innerWidth * d);
+  bg.height = Math.round(innerHeight * d);
+  bgc.setTransform(d, 0, 0, d, 0, 0);
+  // Density scales with area so a laptop and a monitor look like the same
+  // design rather than the same number of dots spread thinner.
+  const n = Math.round((innerWidth * innerHeight) / 4200);
+  strokes = Array.from({ length: n }, () => ({
+    x: Math.random() * innerWidth,
+    y: Math.random() * innerHeight,
+    a: Math.random() * Math.PI * 2,
+    s: 0.10 + Math.random() * 0.34,          // base speed
+    l: 10 + Math.random() * 30,              // stroke length
+    o: 0.16 + Math.random() * 0.40,          // base opacity
+    t: Math.random() < 0.13,                 // a few carry the teal
+  }));
+}
+
+// paint=true renders one frame and returns, with no loop and no motion. Used on
+// load and on resize so the field is ALWAYS on screen, even in a tab that is
+// not focused yet. Animating a hidden tab is waste; showing nothing until
+// somebody clicks is a blank screen, and those are different problems.
+let bgLast = 0;
+function drawField(ts, paint){
+  bgRaf = 0;
+  if(REDUCED) return;
+  // Throttled to about 30fps. The panels are frosted glass, so every field
+  // frame forces the browser to re-composite the blur behind three large
+  // surfaces, and that is the expensive part, not the strokes. At a drift this
+  // slow 30 and 60 are indistinguishable, and 30 halves the cost.
+  if(!paint){
+    if(ts - bgLast < 32){ bgRaf = requestAnimationFrame(drawField); return; }
+    bgLast = ts;
+  }
+  // Ease toward the target so the field swells and settles rather than
+  // snapping between states, which would read as a bug.
+  energy += (targetEnergy - energy) * 0.045;
+
+  bgc.clearRect(0, 0, innerWidth, innerHeight);
+  bgc.lineCap = 'round';
+  for(const p of strokes){
+    if(!frozen && !paint){
+      // A slow curl so the current wanders instead of marching in a line.
+      p.a += Math.sin((p.x + p.y) * 0.0016) * 0.004;
+      const v = p.s * (0.5 + energy * 2.4);
+      p.x += Math.cos(p.a) * v;
+      p.y += Math.sin(p.a) * v;
+      if(p.x < -30) p.x = innerWidth + 30; else if(p.x > innerWidth + 30) p.x = -30;
+      if(p.y < -30) p.y = innerHeight + 30; else if(p.y > innerHeight + 30) p.y = -30;
+    }
+    const len = p.l * (1 + energy * 0.75);
+    const o = p.o * (0.75 + energy * 0.95);
+    bgc.beginPath();
+    bgc.moveTo(p.x, p.y);
+    bgc.lineTo(p.x - Math.cos(p.a) * len, p.y - Math.sin(p.a) * len);
+    bgc.strokeStyle = p.t ? `rgba(45,212,191,${o})` : `rgba(124,108,255,${o})`;
+    bgc.lineWidth = 1.35;
+    bgc.stroke();
+  }
+  // Freeze still needs one last paint to land, then the loop stops entirely
+  // so a held gate costs nothing.
+  if(paint) return;
+  if(!frozen || Math.abs(targetEnergy - energy) > 0.01) bgRaf = requestAnimationFrame(drawField);
+}
+function fieldRun(){ if(!bgRaf && !REDUCED && !document.hidden) bgRaf = requestAnimationFrame(drawField); }
+function fieldState(next){
+  if(next === 'frozen'){ frozen = true; targetEnergy = 0; }
+  else { frozen = false; targetEnergy = next === 'working' ? 1 : 0.12; }
+  fieldRun();
+}
+addEventListener('resize', () => { seedField(); drawField(0, true); fieldRun(); });
+// Never animate for a tab nobody is looking at.
+addEventListener('visibilitychange', () => {
+  if(document.hidden){ cancelAnimationFrame(bgRaf); bgRaf = 0; } else fieldRun();
+});
+seedField();
+energy = 0.12;
+drawField(0, true);   // on screen from the first paint
+fieldState('idle');
+
+// ---- THE SLAM ------------------------------------------------------------
+// A pressure wave that leaves the gate when SHIP holds. Hand rolled canvas,
+// no library, one shot, never a loop.
+//
+// Three things happen on the same clock so it reads as one event:
+//   1. a hard ring expands from the gate at an easing that starts fast and
+//      settles, because real pressure does not travel linearly,
+//   2. a wide soft glow trails it, so the ring has weight rather than being a
+//      hairline, and
+//   3. the CSS drain (body.slammed) desaturates everything the wave passes,
+//      leaving the gate as the only coloured thing on the screen.
+//
+// It costs about 40 frames once per mission. It is skipped entirely under
+// prefers-reduced-motion, where the end state still applies via CSS.
+const fx = document.getElementById('fx');
+const fxc = fx.getContext('2d');
+
+function sizeFx(){
+  const d = Math.min(devicePixelRatio || 1, 2);
+  fx.width = Math.round(innerWidth * d);
+  fx.height = Math.round(innerHeight * d);
+  fxc.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', sizeFx);
+sizeFx();
+
+let slamRelease = 0;
+// The end state is released on WALL CLOCK, never on the animation finishing.
+// requestAnimationFrame does not fire in a hidden tab, so a mission completing
+// in a background tab would leave the screen desaturated forever, and the
+// person would come back to a page that looks broken. This codebase already
+// learned that once with the typewriter effect; the wave is the same trap.
+// The canvas is decoration and may be skipped. The state must be guaranteed.
+function releaseSlam(){
+  clearTimeout(slamRelease);
+  document.body.classList.remove('slammed');
+  fx.classList.remove('on');
+  fxc.clearRect(0, 0, innerWidth, innerHeight);
+}
+
+function slam(){
+  document.body.classList.add('slammed');
+  const DUR = 900;
+  clearTimeout(slamRelease);
+  slamRelease = setTimeout(releaseSlam, DUR + 300);
+
+  // No wave for people who opted out of motion, and none for a tab nobody is
+  // looking at. Both still get the end state from the timer above.
+  if(REDUCED || document.hidden) return;
+
+  const r = gate.getBoundingClientRect();
+  const ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+  // Reach the far corner, so the wash never stops halfway across the screen.
+  const far = Math.hypot(Math.max(ox, innerWidth - ox), Math.max(oy, innerHeight - oy));
+  const t0 = performance.now();
+  fx.classList.add('on');
+
+  requestAnimationFrame(function frame(now){
+    // Clamp BOTH ends. A rAF timestamp is the frame's start time, which can
+    // precede the moment the callback was queued, so `now - t0` comes back
+    // slightly NEGATIVE on the first frame. That made t negative, which made
+    // the radius negative, and arc() throws on a negative radius. It only
+    // showed up against production, never in a hand driven test.
+    const t = Math.min(1, Math.max(0, (now - t0) / DUR));
+    // Fast out, soft land. A linear wave reads like a machine, not a force.
+    const e = 1 - Math.pow(1 - t, 3);
+    const rad = e * far;
+    fxc.clearRect(0, 0, innerWidth, innerHeight);
+
+    // The trailing glow, wide and soft, so the front carries weight.
+    const g = fxc.createRadialGradient(ox, oy, Math.max(0, rad - 260), ox, oy, rad + 40);
+    g.addColorStop(0, 'rgba(245,178,61,0)');
+    g.addColorStop(0.72, `rgba(245,178,61,${0.30 * (1 - t)})`);
+    g.addColorStop(1, 'rgba(245,178,61,0)');
+    fxc.fillStyle = g;
+    fxc.fillRect(0, 0, innerWidth, innerHeight);
+
+    // The front itself.
+    fxc.beginPath();
+    fxc.arc(ox, oy, Math.max(0, rad), 0, Math.PI * 2);
+    fxc.lineWidth = 3 + 16 * (1 - t);
+    fxc.strokeStyle = `rgba(245,178,61,${0.9 * (1 - t)})`;
+    fxc.stroke();
+
+    if(t < 1) requestAnimationFrame(frame);
+  });
+}
+function unslam(){ releaseSlam(); fieldState('idle'); }
+
+function setAgent(step, state, label){
+  const el = document.getElementById('ag-' + step);
+  el.className = 'agent' + (state ? ' ' + state : '');
+  el.querySelector('.astate').textContent = label;
+}
+// Every number this writes is measured, never estimated. If we cannot measure
+// something we do not print a placeholder for it.
+function setMeta(step, text){
+  document.getElementById('ag-' + step).querySelector('.ameta').textContent = text;
+}
+const ms = n => n < 1000 ? Math.round(n) + 'ms' : (n / 1000).toFixed(2) + 's';
+function addEntry(tagText, modeText, body, sys){
+  const e = document.createElement('div'); e.className = 'entry';
+  if(tagText){
+    const t = document.createElement('div'); t.className = 'tag';
+    t.textContent = tagText;
+    if(modeText){
+      const m = document.createElement('span');
+      m.className = 'mode' + (modeText === 'live' ? ' live' : '');
+      m.textContent = modeText;
+      t.appendChild(m);
+    }
+    e.appendChild(t);
+  }
+  const b = document.createElement('div'); b.className = 'body' + (sys ? ' sys' : '');
+  e.appendChild(b);
+  consoleEl.appendChild(e);
+  return b;
+}
+function typeInto(el, text){
+  // Wall-time based so a throttled background tab still finishes the mission.
+  return new Promise(resolve => {
+    const start = performance.now();
+    const total = PACE_VIDEO ? text.length * 25
+      : PACE_FAST ? 160
+      : Math.max(400, Math.min(2800, text.length * 4));
+    const t = setInterval(() => {
+      const frac = Math.min(1, (performance.now() - start) / total);
+      el.textContent = text.slice(0, Math.round(frac * text.length));
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+      if(frac >= 1){ clearInterval(t); resolve(); }
+    }, 12);
+  });
+}
+
+// ---- THE ADK BACKEND -----------------------------------------------------
+// This page is the Google-native build: the crew lives on Cloud Run as an ADK
+// SequentialAgent, and one mission is ONE server-side run streamed back over
+// SSE, not four client-driven steps. The biggest difference is the gate: the
+// framework pauses the invocation at stage_deploy (require_confirmation) and
+// the keys below answer it for real. Approve resumes the paused run; Send back
+// refuses it, and the staged action never executes at all.
+const API = 'https://fleet-command-r453w22nfq-uc.a.run.app';
+const APP = 'fleet_command';
+let sessionId = null;
+let confirmationId = null;
+
+async function adkStream(newMessage, onEvent){
+  const res = await fetch(API + '/run_sse', {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({appName: APP, userId: 'cockpit', sessionId, newMessage, streaming: false}),
+    signal: AbortSignal.timeout(240000),
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  for(;;){
+    const {done, value} = await reader.read();
+    if(done) break;
+    buf += dec.decode(value, {stream: true});
+    let cut;
+    while((cut = buf.indexOf('\n\n')) >= 0){
+      const chunk = buf.slice(0, cut); buf = buf.slice(cut + 2);
+      for(const line of chunk.split('\n')){
+        if(line.startsWith('data:')) await onEvent(JSON.parse(line.slice(5)));
+      }
+    }
+  }
+}
+
+const marketRows = r => r.competitors.map(c => c.position + '. ' + c.title)
+  .concat((r.questions || []).map(q => '? ' + q));
+const domainRows = r => r.candidates.map(c =>
+  (c.purchasable ? '[open] ' : '[taken] ') + c.domainName
+  + (c.purchasable && typeof c.purchasePrice === 'number' ? ' $' + c.purchasePrice.toFixed(2) : ''));
+
+// One render pass for both the mission stream and the gate's answer. Tracks
+// which agent is on deck so the crew column follows the SERVER's sequence, and
+// measures each agent's real wall time from its own events.
+function makeRenderer(){
+  let current = null, tAgent = 0, chars = 0, extra = '';
+  const finish = () => {
+    if(!current) return;
+    setMeta(current, ms(performance.now() - tAgent) + '  ' + chars + 'ch' + extra);
+    setAgent(current, current === 'ship' ? 'holding' : 'done', current === 'ship' ? 'holding' : 'done');
+  };
+  return {
+    finish,
+    async event(ev){
+      const step = {SCOUT:'scout', AUDIT:'audit', MEDIC:'medic', SHIP:'ship'}[ev.author];
+      if(!step) return;
+      if(step !== current){
+        const prev = current;
+        finish();
+        current = step; tAgent = performance.now(); chars = 0; extra = '';
+        setAgent(step, 'working', 'working');
+        setMeta(step, 'POST /run_sse');
+        if(PACE_VIDEO && prev) await sleep(6000);
+      }
+      for(const p of (ev.content && ev.content.parts) || []){
+        if(p.functionCall && p.functionCall.name === 'market_search') setMeta(step, 'calling market_search');
+        if(p.functionCall && p.functionCall.name === 'registrar_check') setMeta(step, 'calling registrar_check');
+        if(p.functionResponse && p.functionResponse.name === 'market_search'){
+          const r = p.functionResponse.response;
+          searchChip.hidden = false;
+          searchChip.textContent = 'market ' + r.source;
+          searchChip.className = 'chip ' + (r.source === 'live' ? 'live' : 'sample');
+          extra = '  market:' + r.source + (r.cached ? '/cached' : '');
+          const mb = addEntry('MARKET RESEARCH', r.source, '', false);
+          await typeInto(mb, 'Market search: "' + r.query + '"\n' + marketRows(r).join('\n'));
+        }
+        if(p.functionResponse && p.functionResponse.name === 'registrar_check'){
+          const r = p.functionResponse.response;
+          extra = '  domain:' + r.source;
+          const db = addEntry('DEPLOY TARGET', r.source, '', false);
+          await typeInto(db, 'Registrar check: does this business own its own name?\n' + domainRows(r).join('\n'));
+        }
+        // SHIP's staging summary rides in the stage_deploy call itself: that is
+        // the text the human is being asked to judge, so it renders verbatim.
+        if(p.functionCall && p.functionCall.name === 'stage_deploy' && p.functionCall.args && p.functionCall.args.summary){
+          chars += p.functionCall.args.summary.length;
+          await typeInto(addEntry('SHIP', 'live', '', false), p.functionCall.args.summary);
+        }
+        if(p.functionCall && p.functionCall.name === 'adk_request_confirmation'){
+          confirmationId = p.functionCall.id;
+          setMeta(step, 'paused: adk_request_confirmation');
+        }
+        if(p.text){
+          chars += p.text.length;
+          await typeInto(addEntry(ev.author, 'live', '', false), p.text);
+        }
+      }
+    },
+  };
+}
+
+async function runMission(){
+  fieldState('working');
+  runBtn.disabled = true;
+  approveBtn.disabled = true; rejectBtn.disabled = true;
+  resetKeys();
+  gate.classList.remove('armed');
+  document.body.classList.remove('gated');
+  unslam();
+  gateHead.textContent = 'Your call.';
+  writeSentences(gateBody, 'Mission running. SHIP will hold here.');
+  STEPS.forEach(s => { setAgent(s, '', 'idle'); setMeta(s, ''); });
+  confirmationId = null;
+  sessionId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+  const sys = addEntry('', '', 'Opening a mission session...', true);
+  const render = makeRenderer();
+  try{
+    const sres = await fetch(API + '/apps/' + APP + '/users/cockpit/sessions/' + sessionId, {
+      method: 'POST', headers: {'content-type': 'application/json'}, body: '{}',
+      signal: AbortSignal.timeout(30000),
+    });
+    if(!sres.ok) throw new Error('session HTTP ' + sres.status);
+    sys.parentElement.remove();
+    modeChip.textContent = 'live';
+    modeChip.className = 'chip live';
+    modeNote.textContent = 'Live mode: each step runs live and holds for your approval.';
+    await adkStream({role: 'user', parts: [{text: 'Run the mission.'}]}, render.event);
+  }catch(err){
+    writeSentences(sys, 'The crew lost contact with the mission service. Run again.');
+    modeChip.textContent = 'unreachable'; modeChip.className = 'chip';
+    runBtn.disabled = false; fieldState('idle'); return;
+  }
+  render.finish();
+  if(!confirmationId){
+    addEntry('', '', 'The mission ended without reaching the gate, which is itself a finding. Run again.', true);
+    runBtn.disabled = false; fieldState('idle'); return;
+  }
+  // The one moment. The crew settles back, the gate takes the only amber on
+  // the screen, and Approve becomes the only lit control. On this build the
+  // hold underneath it is real: the invocation is paused server-side.
+  gate.classList.add('armed');
+  document.body.classList.add('gated');
+  fieldState('frozen');
+  slam();
+  gateHead.textContent = 'Your call.';
+  writeSentences(gateBody, 'SHIP has staged the fix and the framework has paused the mission server-side. The release takes both keys: turn one to arm, two to release. Until then the staged action cannot execute, by construction.');
+  keyArm.disabled = false; rejectBtn.disabled = false;
+  runBtn.disabled = false;
+}
+
+// The human's answer, sent back into the SAME paused invocation. The runner
+// matches it by the confirmation call id and resumes exactly where it held.
+async function answerGate(confirmed){
+  const render = makeRenderer();
+  try{
+    await adkStream({role: 'user', parts: [{functionResponse: {
+      id: confirmationId, name: 'adk_request_confirmation', response: {confirmed},
+    }}]}, render.event);
+    render.finish();
+    return true;
+  }catch(err){
+    writeSentences(addEntry('GATE', '', '', false), 'The answer did not reach the mission service. The mission is still holding; try again.');
+    return false;
+  }
+}
+
+keyArm.addEventListener('click', () => {
+  if(keyArm.classList.contains('turned')) return;
+  keyArm.classList.add('turned'); keyArm.setAttribute('aria-pressed','true');
+  approveBtn.disabled = false;
+  writeSentences(gateBody, 'Armed. Key two is live. Turn it and the staged deploy releases; Send back stands down both keys.');
+});
+approveBtn.addEventListener('click', async () => {
+  approveBtn.classList.add('turned'); approveBtn.setAttribute('aria-pressed','true');
+  keyArm.disabled = true;
+  approveBtn.disabled = true; rejectBtn.disabled = true;
+  writeSentences(gateBody, 'Releasing: your approval is resuming the paused mission...');
+  writeSentences(addEntry('GATE', '', '', false), 'Human approval sent. Resuming the paused invocation server-side.');
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+  const ok = await answerGate(true);
+  gate.classList.remove('armed');
+  document.body.classList.remove('gated');
+  unslam();
+  if(ok){
+    setAgent('ship', 'done', 'released');
+    writeSentences(gateBody, 'Approved. The framework executed the staged release only after your answer arrived. Nothing real ships in this demo, and it says so, because honesty is a feature.');
+  }
+});
+rejectBtn.addEventListener('click', async () => {
+  resetKeys();
+  approveBtn.disabled = true; rejectBtn.disabled = true;
+  writeSentences(gateBody, 'Sending back: your decision is returning the paused mission...');
+  writeSentences(addEntry('GATE', '', '', false), 'Human refused the release. The framework never executes the staged action.');
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+  const ok = await answerGate(false);
+  gate.classList.remove('armed');
+  document.body.classList.remove('gated');
+  unslam();
+  if(ok){
+    setAgent('ship', '', 'sent back');
+    writeSentences(gateBody, 'Sent back. The staged deploy was refused at the framework level, so it never ran at all. The crew holds; nothing shipped.');
+  }
+});
+runBtn.addEventListener('click', runMission);
+</script>
+<section class="esig" data-eslabon-signature data-ground="host" data-eslabon-light="titanium" aria-label="Designed by Eslabon Group">
+ <div class="esig-credit"><a href="https://eslabongroup.com" target="_blank" rel="noopener" aria-label="Designed by Eslabon Group"><span class="esig-by">Designed by</span><span class="esig-brand-mark"><img class="esig-wordmark" src="/assets/eslabon-signature/v001-db87eb241765/lockup.svg" alt="Eslabon Group" width="180" height="64"><span class="esig-metal-surface" aria-hidden="true"></span></span></a></div>
+ <div class="esig-stage" aria-hidden="true"><img class="esig-poster" src="/assets/eslabon-signature/v001-db87eb241765/mark.svg" alt="" width="940" height="360"><canvas class="esig-canvas"></canvas></div>
+ <div class="esig-actions"><button type="button" class="esig-control esig-sound" aria-label="Play signature sound" aria-pressed="false" title="Play sound" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4ZM17 8a6 6 0 0 1 0 8"/></svg></button><button type="button" class="esig-control esig-pause" aria-label="Pause signature animation" title="Pause motion" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div>
+ </section><script data-eslabon-assets="js" type="module" src="/assets/eslabon-signature/v001-db87eb241765/signature.mjs"></script></body>
+</html>

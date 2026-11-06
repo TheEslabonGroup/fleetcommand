@@ -1,0 +1,12 @@
+Fleet Command, rebuilt on Google's own stack: ADK agents on Cloud Run, Gemini through Vertex AI, and a human approval gate the framework itself enforces.
+
+Four agents work a target site in sequence. SCOUT runs reconnaissance and reads the live market. AUDIT ranks the defects. MEDIC drafts the fix. SHIP stages the deploy. Then the framework pauses the mission server-side and refuses to execute the release until a person answers. A rejected gate never runs at all. AI drafts, people decide, and the gate is the product.
+
+Live cockpit: https://fleetcommand-2u0.pages.dev/google
+Cloud Run backend: https://fleet-command-r453w22nfq-uc.a.run.app
+Built by: https://thebrockchain.com
+Code: https://github.com/thebrockchain
+
+There is no API key anywhere in this deployment: the service reaches Gemini as its own identity. Even the score and narration were generated on the same Google stack.
+
+#AI #AIagents #GoogleCloud #Gemini #CloudRun #ADK

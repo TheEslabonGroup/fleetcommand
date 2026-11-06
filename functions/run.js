@@ -2,7 +2,8 @@
 //
 // Two honest modes, the fleet on-switch pattern:
 //   LIVE   - ANTHROPIC_API_KEY is set as a Pages secret: the step is a real
-//            Claude call and the response says mode "live".
+//            Claude call and the response says mode "live", up to a daily
+//            cap on live calls (THE SPEND GUARD, below).
 //   REPLAY - no key: the step answers from a recorded run of the same mission
 //            and the response says mode "replay". The UI labels it. Nothing
 //            pretends to be live when it is not.
@@ -69,11 +70,67 @@ const REPLAY = {
 
 const STEP_ORDER = ['scout', 'audit', 'medic', 'ship'];
 
+// LIVE OUTPUT FOLLOWS THE HOUSE COPY RULES. The replay above was written to
+// them; a live model is not. The first live mission on 2026-09-23 put eight
+// em and en dashes and raw markdown backticks on the page. STYLE asks for
+// plain text, and houseCopy() enforces the part that matters, because an
+// instruction is a request and this page is public copy. Dashes become a plain
+// hyphen in a number range or a bullet, and a comma everywhere else.
+const STYLE = ' Write plain text: no markdown formatting and no backticks. Never use an em dash or an en dash; use a comma, colon or period instead.';
+
+function houseCopy(text) {
+  return text
+    .replace(/`/g, '')
+    .replace(/(\d)[ \t]*[\u2012\u2013][ \t]*(\d)/g, '$1-$2')
+    .replace(/^([ \t]*)[\u2012-\u2015][ \t]*/gm, '$1- ')
+    .replace(/[ \t]*[\u2012-\u2015][ \t]*$/gm, '')
+    .replace(/[ \t]*[\u2012-\u2015][ \t]*/g, ', ')
+    .replace(/\u2212/g, '-')
+    .replace(/,(?:[ \t]*,)+/g, ',');
+}
+
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'content-type': 'application/json; charset=utf-8' },
   });
+}
+
+// THE SPEND GUARD. This page is public with no login, and until 2026-09-23
+// nothing stood between a visitor pressing Run in a loop and the key's whole
+// balance. Each live call is at most about one cent: input tops out near 2,700
+// tokens (the 8,000 character prior cap is most of it) and output at the 500
+// token max_tokens, at claude-sonnet-5's $2 in / $10 out per million
+// (Anthropic's price table, read 2026-09-23). So a day's live calls are capped
+// here, and past the cap the step is served from the replay and SAYS so.
+//
+// The count is one global number per UTC day in MARKET_CACHE: a count of
+// calls, nothing about who made them. It FAILS CLOSED, so with no KV bound
+// there is no live call at all. It is also approximate: KV is eventually
+// consistent and this is a read then a write, so a burst from several places
+// at once can run a few calls past the cap. That is why the HARD ceiling is
+// the spend limit on the key's own Anthropic workspace, which does not depend
+// on this code being right. This cap spreads the budget across days, so one
+// bored visitor cannot spend all of it in an hour.
+const LIVE_DAILY_CAP = 100;
+
+// Answers null when the call may go live, or the reason it may not, which
+// the page shows in place of its usual replay line.
+const NO_COUNTER = "the live call counter is unavailable, so this is the recorded run";
+
+async function liveBlocked(env) {
+  const kv = env.MARKET_CACHE;
+  if (!kv) return NO_COUNTER;
+  const cap = Number.parseInt(env.LIVE_DAILY_CAP, 10) > 0 ? Number.parseInt(env.LIVE_DAILY_CAP, 10) : LIVE_DAILY_CAP;
+  const key = `live-calls:${new Date().toISOString().slice(0, 10)}`;
+  try {
+    const used = Number.parseInt(await kv.get(key), 10) || 0;
+    if (used >= cap) return "today's live runs are used up, so this is the recorded run. Live runs come back at midnight UTC";
+    await kv.put(key, String(used + 1), { expirationTtl: 60 * 60 * 48 });
+    return null;
+  } catch {
+    return NO_COUNTER;
+  }
 }
 
 export async function onRequestPost({ request, env }) {
@@ -122,6 +179,10 @@ export async function onRequestPost({ request, env }) {
   if (!env.ANTHROPIC_API_KEY) {
     return json({ mode: 'replay', agent: agent.name, step, output: REPLAY[step], ...intel });
   }
+  const blocked = await liveBlocked(env);
+  if (blocked) {
+    return json({ mode: 'replay', agent: agent.name, step, output: REPLAY[step], note: blocked, ...intel });
+  }
 
   const userContent =
     `SYNTHETIC TARGET SNAPSHOT (fictional, for a demo):\n${TARGET_SNAPSHOT}\n\n` +
@@ -141,7 +202,7 @@ export async function onRequestPost({ request, env }) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 500,
-        system: agent.system,
+        system: agent.system + STYLE,
         messages: [{ role: 'user', content: userContent }],
       }),
     });
@@ -150,7 +211,7 @@ export async function onRequestPost({ request, env }) {
       return json({ mode: 'replay', agent: agent.name, step, output: REPLAY[step], note: 'live call failed, replay served', ...intel });
     }
     const data = await res.json();
-    const text = (data.content || []).map(b => b.text || '').join('');
+    const text = houseCopy((data.content || []).map(b => b.text || '').join(''));
     return json({ mode: 'live', agent: agent.name, step, output: text || REPLAY[step], ...intel });
   } catch {
     return json({ mode: 'replay', agent: agent.name, step, output: REPLAY[step], note: 'live call failed, replay served', ...intel });

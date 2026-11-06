@@ -1,7 +1,14 @@
 # DevNetwork API + Cloud + AI Hackathon 2026 entry (primary target)
 
+**SUBMITTED 2026-09-02 03:49pm EDT.** Public page:
+https://devpost.com/software/fleet-command . Editing stays open until the
+deadline, Sep 3, 2026 at 10:00am PDT (1:00pm EDT). The text below is what was
+pasted in, kept as the record.
+
 Event: https://api-cloud-ai-hackathon-2026.devpost.com/
-Window: Aug 17 to Sep 3, 2026. $45,500 cash pool, $12,500 overall winner.
+Window: Aug 17 to Sep 3, 2026. $39,500 cash pool (re-read off the event page
+2026-09-03; the $45,500 figure from Aug 14 predates dropped sponsor tracks),
+$12,500 overall winner, 1,358 participants.
 Tracks entered: the general API + Cloud + AI category (our stack IS the track),
 plus the **SerpApi challenge** ($3,000, 2 winners) which SCOUT genuinely uses,
 plus the **name.com challenge** ($2,000, 2 winners) which SHIP genuinely uses.
@@ -102,9 +109,10 @@ claude, serpapi, name.com
 ## Links
 
 - Live demo: https://fleetcommand-2u0.pages.dev
-- Video: (YouTube link after recording, script in VIDEO-SCRIPT.md)
-- Repo: private; flip public or grant judge access only if the event
-  requires source review, Brock's call at submission time.
+- Video: https://youtu.be/6L4Ez-XEcKo
+- Repo: https://github.com/thebrockchain/fleetcommand (public since
+  2026-09-02; every track on the event page requires a public repo)
+- Demo video backup (required field): https://files.thebrockchain.com/fleetcommand/fleet-command-demo.mp4
 
 ---
 

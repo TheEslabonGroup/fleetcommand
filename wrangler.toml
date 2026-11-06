@@ -8,14 +8,14 @@
 # ON-SWITCH (fleet pattern): live agent runs arm only when ANTHROPIC_API_KEY
 # is set as a Pages secret (Brock's hands, a live secret key is human-only).
 # Until then /run answers in replay mode, and the UI says so honestly.
-#   cd fleetcommand && npx wrangler pages secret put ANTHROPIC_API_KEY
+#   cd fleetcommand && npx wrangler pages secret put ANTHROPIC_API_KEY --project-name fleetcommand && npx wrangler pages deploy --branch main
 #
 # SECOND ON-SWITCH: SCOUT's market lens searches Google through SerpApi only
 # when SERPAPI_KEY is armed the same way. Until then SCOUT gets clearly
 # labelled SAMPLE data and the page shows a "serpapi sample" chip. Free plan is
 # 100 searches a month, so results are cached in KV for 12 hours against a fixed
 # query; see functions/_lib/market.js.
-#   cd fleetcommand && npx wrangler pages secret put SERPAPI_KEY
+#   cd fleetcommand && npx wrangler pages secret put SERPAPI_KEY --project-name fleetcommand && npx wrangler pages deploy --branch main
 
 name = "fleetcommand"
 compatibility_date = "2026-08-01"
@@ -23,7 +23,15 @@ pages_build_output_dir = "site"
 
 # Market-search cache. Holds SerpApi usage near 60 searches a month worldwide no
 # matter how many visitors press Run. Caches public search results only, never
-# anything about a visitor.
+# anything about a visitor. Since 2026-09-23 it also holds one number per UTC
+# day, the count of live Claude calls, which the spend guard in
+# functions/run.js caps (default 100, LIVE_DAILY_CAP overrides). A count, not
+# who made the calls.
 [[kv_namespaces]]
 binding = "MARKET_CACHE"
 id = "654e70203d71438282b70d663aa6d201"
+
+# fleet pulse (fleetbrain's shared traffic dataset)
+[[analytics_engine_datasets]]
+binding = "PULSE"
+dataset = "fleet_pulse"

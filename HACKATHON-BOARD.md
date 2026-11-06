@@ -1,7 +1,60 @@
 # The Hackathon Board
 
+**RE-VERIFIED 2026-09-03 02:05 EDT against each event's own live page.** The
+DevNetwork field is **1,358 participants** this morning (1,342 yesterday), the
+deadline holds at **Sep 3, 10:00am PDT (1:00pm EDT)**, judging runs 10:00am to
+1:00pm PDT and winners are announced 4:00pm PDT the same day, all read off the
+event's schedule page. Six more open contests with real cash were checked from
+their own pages and ruled out (Agentic Cinema, Agents for Humans, AI Builders,
+GIBC V2, ML Empowerment, the Amazon Developer Hackathon: each is students only,
+a different required stack, or device builds); the reasoning per event is on
+the live board. IBM Bob 2.0 could not be re-read (lablab.ai sits behind a
+Cloudflare JS challenge) and is marked unverified since Aug 25. The narrated
+2:46 film master turned out to be ON THIS MAC, so swapping it into the entry's
+video field is one command (see NEXT.md).
+
+**RE-VERIFIED 2026-09-02 against each event's own live page.** The 2026-08-14
+pass below it is kept for its reasoning, but three of its headline numbers were
+already wrong by today and are corrected here first.
+
+## The state of play, 2026-09-02
+
+**ENTERED, and it is the fleet's first ever contest entry:**
+**DevNetwork [API + Cloud + AI] Hackathon 2026**, submitted, public page at
+https://devpost.com/software/fleet-command . One entry against three prizes: the
+$12,500 overall, SerpApi ($3,000) and name.com ($2,000). Editing stays open
+until the deadline.
+
+**Three corrections to the Aug 14 numbers, all measured off the live page:**
+- The pool is **$39,500**, not the $45,500 recorded below. Sponsor tracks were
+  dropped after that pass, including useBruno, Wundergraph and Apptio, which the
+  old notes named as cheap wins. They no longer exist.
+- The deadline is **Sep 3 at 1:00pm EDT**, which is a MORNING cutoff on the west
+  coast (10:00am PDT). The old board wrote "Sep 3" with no time, and a session
+  reading it would have assumed end of day and missed by hours.
+- The field is **1,342 participants**, which the old board never recorded at all.
+
+**MISSED: All Things Agentic.** Closed 2026-08-31 at 5:00pm PDT. The Google
+port, the Cloud Run deploy and a second narrated film were built for it and it
+was never entered. The single largest avoidable loss on this board, and the
+cause was not the build: nobody was watching the clock.
+
+**Scouted 2026-09-02 and ruled out, so nobody re-scouts them:**
+- **The WebMCP Challenge**, $35,000, run by OpenAI, closes Sep 3. Needs a real
+  WebMCP integration we do not have, and the field is **6,015 participants**.
+  A bolt-on would break our own no-fake-integrations rule.
+- **VoltHacks**, $35,785 headline, Sep 5. **STUDENTS ONLY, professionals
+  explicitly excluded**, so we are ineligible. Its real cash is **$4,760**; the
+  rest is credits and subscriptions. A headline prize number is not a cash pool.
+- Everything else open under Machine Learning/AI is non-cash or under $1,500.
+
+---
+
+## The Aug 14 pass, kept for its reasoning
+
 Live intel as of **2026-08-14**. Everything here was fetched from the event's
-own page today, not from memory. Where a date could not be confirmed it says so.
+own page that day, not from memory. Where a date could not be confirmed it says
+so. **Read the corrections above before acting on any number below.**
 
 The entry is **Fleet Command** (`fleetcommand-2u0.pages.dev`): four agents
 (SCOUT / AUDIT / MEDIC / SHIP) working a synthetic target, every deploy holding

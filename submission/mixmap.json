@@ -1,0 +1,22 @@
+{
+  "comment": "Where each read line lands on the film, in seconds. Written 2026-08-26 when the booth went to read-mode: Brock reads freely, the mix cuts his best take of each line and places it here. Lines 9 to 14 were trimmed to fit their windows at a human pace; the film's final frame gets a ~3.5s freeze extension so the close can breathe (still far under the 3:00 cut).",
+  "film": "~/Desktop/fleetcommand-demo.mp4",
+  "filmDuration": 161.97,
+  "freezeExtend": 3.5,
+  "lines": [
+    {"n": 1,  "t": 3.51,   "by": 11.0,  "text": "That is an AI crew stopping itself. … It did the work. Then it refused to ship it without a person."},
+    {"n": 2,  "t": 11.3,   "by": 14.8,  "text": "Here is how it got there."},
+    {"n": 3,  "t": 14.8,   "by": 33.0,  "text": "If you run a small business you cannot afford an operations crew. Nobody watches your site, and you find out it is broken from a customer. So we built one: SCOUT does reconnaissance, AUDIT ranks what it finds, MEDIC drafts the fix, SHIP stages the deploy."},
+    {"n": 4,  "t": 33.4,   "by": 42.0,  "text": "Today's target is a bakery site we broke on purpose: a dead order form, no security headers, a six second load."},
+    {"n": 5,  "t": 42.43,  "by": 61.0,  "text": "SCOUT does not just read the site. It reads the market around it, live through SerpApi. And that changes the finding: the order form posting into a dead route is not just a bug, it is a bug in the exact place every competitor is winning. Every order this bakery takes is silently vanishing."},
+    {"n": 6,  "t": 62.0,   "by": 80.0,  "text": "AUDIT ranks the defects. High, medium, low. The dead order route is on top because it is the one actively costing money."},
+    {"n": 7,  "t": 82.0,   "by": 98.0,  "text": "MEDIC writes the actual fix. That is a real diff: repoint the form, add the handler. Drafted, not applied. MEDIC never touches production."},
+    {"n": 8,  "t": 100.0,  "by": 116.5, "text": "Those chips say replay and sample. This run is a recording, and the app says so instead of faking a live call. Arm the keys and the same code goes live. We would rather label a sample than lie to you."},
+    {"n": 9,  "t": 119.5,  "by": 130.0, "text": "And there it is. SHIP staged the deploy, named the risks, and stopped. The hold is structural: no code path forward until a person decides. And the only lit control left on the screen is the one that belongs to you."},
+    {"n": 10, "t": 130.35, "by": 140.6, "text": "And SHIP caught something nobody asked it to: this bakery does not own its own name. Anyone could register it tomorrow. That is a person's call, not software's."},
+    {"n": 11, "t": 141.0,  "by": 144.2, "text": "I can send it back, and MEDIC revises."},
+    {"n": 12, "t": 144.45, "by": 153.6, "text": "Or I approve, and only then does anything release. AI does the work. A person holds the trigger. The gate is the product."},
+    {"n": 13, "t": 154.2,  "by": 160.5, "text": "And this same engine already runs our real ops room, across dozens of live sites."},
+    {"n": 14, "t": 160.9,  "by": 165.3, "text": "Fleet Command. The crew does the work. You hold the trigger."}
+  ]
+}

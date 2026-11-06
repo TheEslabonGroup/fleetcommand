@@ -1,0 +1,12 @@
+The web fonts in this folder are served from this site rather than from a
+third party origin. That is redistribution, so the notices below travel with
+them.
+
+Montserrat
+  Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)
+  https://openfontlicense.org
+
+Space Grotesk
+  Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+  https://scripts.sil.org/OFL
+

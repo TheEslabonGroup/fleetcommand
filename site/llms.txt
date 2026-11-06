@@ -1,4 +1,4 @@
-# Fleet Command
+# On Your Go
 
 > An agentic operations command center. Four AI agents work a target site in
 > sequence, and every consequential action stops at a human approval gate.
@@ -7,6 +7,8 @@
 
 Website: https://fleetcommand-2u0.pages.dev/
 Builder: Brock Falfas, https://thebrockchain.com/
+
+Entered in the DevNetwork API + Cloud + AI Hackathon 2026 as Fleet Command. The entry: https://devpost.com/software/fleet-command
 
 ## What it is
 
@@ -27,7 +29,7 @@ objection attached.
 
 Most agentic demos pick one of two extremes: full autonomy, which is reckless
 the moment an agent touches production, or approval on every keystroke, which
-is useless. Fleet Command demonstrates a third shape: full autonomy inside the
+is useless. On Your Go demonstrates a third shape: full autonomy inside the
 loop, and one hard gate at the boundary where the loop meets the real world.
 The gate is not a limitation of the product. The gate is the product.
 

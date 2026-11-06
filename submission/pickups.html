@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Booth · Fleet Command</title>
+<!-- PICKUP MODE. Three lines, zero pressure: Brock reads the fourteen lines top to
+     bottom at his own pace, repeats any sentence he trips on, and saves ONE
+     file. The mix (crew side) transcribes it, keeps the best read of each
+     line, cleans it, and lands every line on the film at the times in
+     submission/mixmap.json. The reader never worries about timing. -->
+<style>
+:root{
+  --bg:#0b0e15; --surf:#141926; --line:#232b45; --ink:#eef1fb; --muted:#8b93af;
+  --indigo:#7c6cff; --teal:#2dd4bf; --amber:#f5b23d; --red:#ff5470;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,'Segoe UI',sans-serif;
+  height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:1rem;padding:.7rem 1.4rem;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--bg);z-index:5}
+header h1{font-size:1.05rem;letter-spacing:.06em}
+header h1 b{color:var(--indigo)}
+.meter{width:220px;height:14px;border:1px solid var(--line);border-radius:99px;overflow:hidden;background:#0d1119}
+.meter i{display:block;height:100%;width:0%;background:var(--teal)}
+.mstate{font-size:.82rem;color:var(--muted);flex:1}
+.clock{font-variant-numeric:tabular-nums;color:var(--muted)}
+main{flex:1;overflow-y:auto;padding:1.4rem 8vw 7rem}
+.rules{background:var(--surf);border:1px solid var(--line);border-radius:.8em;padding:1em 1.2em;
+  color:var(--muted);line-height:1.6;margin-bottom:1.6rem}
+.rules b{color:var(--ink)}
+.ln{margin-bottom:1.5rem;padding-left:1rem;border-left:3px solid var(--line)}
+.ln .tag{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--indigo);margin-bottom:.3em}
+.ln .tag i{color:var(--muted);font-style:normal;letter-spacing:0;text-transform:none}
+.ln p{font-size:clamp(1.15rem,1.9vw,1.6rem);line-height:1.6;font-weight:600}
+footer{position:fixed;left:0;right:0;bottom:0;display:flex;gap:.8rem;align-items:center;
+  padding:.9rem 8vw;background:rgba(11,14,21,.92);border-top:1px solid var(--line);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+button{font:inherit;font-weight:700;border:0;border-radius:.6em;padding:.85em 1.6em;cursor:pointer}
+button:disabled{opacity:.35;cursor:default}
+.ghost{background:var(--surf);color:var(--ink);border:1px solid var(--line)}
+#recBtn{background:var(--red);color:#fff}
+#recBtn.rec{animation:flash 1.2s infinite}
+#saveBtn{background:var(--teal);color:#04211d}
+@keyframes flash{50%{opacity:.55}}
+</style>
+</head>
+<body>
+<header>
+  <h1>VOICE <b>BOOTH</b> · three pickups</h1>
+  <div class="meter"><i id="level"></i></div>
+  <span class="mstate" id="mstate">Step 1: press "Mic check" below.</span>
+  <span class="clock" id="clock">0:00</span>
+</header>
+
+<main id="scriptEl">
+  <div class="rules">
+    <b>The only rules:</b><br>
+    1. Quiet room, stay about a hand's length from the mic.<br>
+    2. Read the three lines, top to bottom, at YOUR pace. No clock, no rush.<br>
+    3. <b>Mess a sentence up? Just say that sentence again right away</b> and keep going. Do it as many times as you want. I keep your best one and nobody ever hears the rest.<br>
+    4. Take a small breath between lines.<br>
+    Timing, cutting, cleanup, and syncing to the movie: all my job, not yours.
+  </div>
+</main>
+
+<footer>
+  <button id="micBtn" class="ghost">🎙 Mic check</button>
+  <button id="recBtn" disabled>● Start reading</button>
+  <button id="hearBtn" class="ghost" disabled>🔁 Hear it back</button>
+  <button id="saveBtn" disabled>⬇ Save my voice</button>
+</footer>
+
+<script>
+// The lines, verbatim from submission/mixmap.json. The mix matches his words
+// back to these texts, so this array and that file must say the same things.
+const LINES = [
+  {hint:'the crew: easy pace, hit CANNOT afford', text:'If you run a small business you cannot afford an operations crew. Nobody watches your site, and you find out it is broken from a customer. So we built one: SCOUT does reconnaissance, AUDIT ranks what it finds, MEDIC drafts the fix, SHIP stages the deploy.'},
+  {hint:'medic: the word is DIFF, one syllable, like riff', text:'MEDIC writes the actual fix. That is a real diff: repoint the form, add the handler. Drafted, not applied. MEDIC never touches production.'},
+  {hint:'the honesty line: the word is REPLAY', text:'Those chips say replay and sample. This run is a recording, and the app says so instead of faking a live call. Arm the keys and the same code goes live. We would rather label a sample than lie to you.'},
+];
+
+const scriptEl = document.getElementById('scriptEl');
+LINES.forEach((l, i) => {
+  const d = document.createElement('div');
+  d.className = 'ln';
+  d.innerHTML = '<div class="tag">Line ' + (i+1) + ' <i>· ' + l.hint + '</i></div><p></p>';
+  d.querySelector('p').textContent = l.text;
+  scriptEl.appendChild(d);
+});
+
+const level = document.getElementById('level');
+const mstate = document.getElementById('mstate');
+const clock = document.getElementById('clock');
+const micBtn = document.getElementById('micBtn');
+const recBtn = document.getElementById('recBtn');
+const hearBtn = document.getElementById('hearBtn');
+const saveBtn = document.getElementById('saveBtn');
+
+let stream = null, recorder = null, chunks = [], take = null, playback = null, t0 = 0, timer = 0;
+const fmt = s => Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
+
+micBtn.addEventListener('click', async () => {
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation:false, noiseSuppression:false, autoGainControl:false}});
+  }catch(e){
+    mstate.textContent = 'Mic blocked. Click the 🎤 in the address bar, allow, retry.';
+    return;
+  }
+  const ctx = new AudioContext();
+  const an = ctx.createAnalyser(); an.fftSize = 512;
+  ctx.createMediaStreamSource(stream).connect(an);
+  const buf = new Uint8Array(an.frequencyBinCount);
+  (function loop(){
+    an.getByteFrequencyData(buf);
+    const v = Math.min(100, Math.round(buf.reduce((a,b)=>a+b,0)/buf.length*1.6));
+    level.style.width = v + '%';
+    level.style.background = v > 4 ? 'var(--teal)' : '#565f7c';
+    requestAnimationFrame(loop);
+  })();
+  mstate.textContent = 'Talk. Green bounce = it hears you. Then press "Start reading".';
+  micBtn.textContent = '🎙 Mic is on';
+  recBtn.disabled = false;
+});
+
+recBtn.addEventListener('click', () => {
+  if(recorder && recorder.state === 'recording'){
+    recorder.stop();
+    return;
+  }
+  if(playback){ playback.pause(); playback = null; }
+  chunks = []; take = null; saveBtn.disabled = true; hearBtn.disabled = true;
+  recorder = new MediaRecorder(stream, {mimeType:'audio/webm;codecs=opus', audioBitsPerSecond:160000});
+  recorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+  recorder.onstop = () => {
+    clearInterval(timer);
+    take = new Blob(chunks, {type:'audio/webm'});
+    recBtn.textContent = '● Start reading again';
+    recBtn.classList.remove('rec');
+    mstate.textContent = 'Captured ' + fmt((performance.now()-t0)/1000) + ' (' + Math.round(take.size/1024) + ' KB). Hear it back, save it, or read again.';
+    hearBtn.disabled = false; saveBtn.disabled = false;
+  };
+  recorder.start(250);
+  t0 = performance.now();
+  timer = setInterval(() => { clock.textContent = fmt((performance.now()-t0)/1000); }, 500);
+  recBtn.textContent = '■ Stop, I read everything';
+  recBtn.classList.add('rec');
+  mstate.textContent = '● RECORDING. Read line 1 to 14. Flub it? Say the sentence again and roll on.';
+  scriptEl.scrollTo({top:0, behavior:'smooth'});
+});
+
+hearBtn.addEventListener('click', () => {
+  if(!take) return;
+  if(playback){ playback.pause(); playback = null; return; }
+  playback = new Audio(URL.createObjectURL(take));
+  playback.play();
+  mstate.textContent = 'Playing your read. Press again to stop.';
+});
+
+saveBtn.addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(take);
+  a.download = 'fleetcommand-vo-pickup.webm';
+  a.click();
+  mstate.textContent = 'Saved to Downloads as fleetcommand-vo-read.webm. Tell Claude: done.';
+});
+</script>
+</body>
+</html>

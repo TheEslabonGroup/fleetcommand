@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 800" font-family="Space Grotesk, -apple-system, Segoe UI, sans-serif">
+  <!-- Fleet Command on Google Cloud: the architecture, drawn in the product's
+       own palette. Amber appears exactly once, on the human gate, because that
+       is the design law of the cockpit itself: amber means a person is needed. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8b93af"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#2dd4bf"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#f5b23d"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="800" fill="#0b0e15"/>
+  <text x="60" y="64" fill="#eef1fb" font-size="30" font-weight="700">FLEET <tspan fill="#7c6cff">COMMAND</tspan> on Google Cloud</text>
+  <text x="60" y="94" fill="#8b93af" font-size="16">Four ADK agents do the work. A framework-enforced human gate holds the trigger.</text>
+
+  <!-- ===== Cockpit (left) ===== -->
+  <rect x="60" y="150" width="280" height="210" rx="12" fill="#141926" stroke="#232b45"/>
+  <text x="80" y="184" fill="#79839a" font-size="13" letter-spacing="2">COCKPIT</text>
+  <text x="80" y="212" fill="#eef1fb" font-size="18" font-weight="600">One-screen console</text>
+  <text x="80" y="238" fill="#8b93af" font-size="14">Cloudflare Pages, static.</text>
+  <text x="80" y="258" fill="#8b93af" font-size="14">Zero dependencies, hand-rolled.</text>
+  <text x="80" y="278" fill="#8b93af" font-size="14">Streams the mission over SSE,</text>
+  <text x="80" y="298" fill="#8b93af" font-size="14">renders live telemetry per agent.</text>
+  <text x="80" y="336" fill="#565f7c" font-size="13" font-family="ui-monospace, Menlo, monospace">/google</text>
+
+  <!-- Human at the gate (amber, the only amber) -->
+  <rect x="60" y="480" width="280" height="150" rx="12" fill="#141926" stroke="#f5b23d" stroke-width="2"/>
+  <text x="80" y="514" fill="#f5b23d" font-size="13" letter-spacing="2">THE GATE</text>
+  <text x="80" y="542" fill="#eef1fb" font-size="18" font-weight="600">A named human</text>
+  <text x="80" y="568" fill="#8b93af" font-size="14">Two-key ignition: arm, release.</text>
+  <text x="80" y="588" fill="#8b93af" font-size="14">Approve resumes the paused run.</text>
+  <text x="80" y="608" fill="#8b93af" font-size="14">Refuse and the release never runs.</text>
+
+  <!-- ===== Cloud Run (center) ===== -->
+  <rect x="440" y="130" width="520" height="540" rx="14" fill="#10141f" stroke="#232b45"/>
+  <text x="464" y="164" fill="#79839a" font-size="13" letter-spacing="2">GOOGLE CLOUD RUN · us-central1</text>
+  <text x="464" y="192" fill="#eef1fb" font-size="18" font-weight="600">ADK API server</text>
+  <text x="464" y="214" fill="#8b93af" font-size="13">App(resumable) · sessions · /run_sse</text>
+
+  <!-- SequentialAgent chain -->
+  <rect x="464" y="238" width="472" height="250" rx="10" fill="#141926" stroke="#232b45"/>
+  <text x="484" y="266" fill="#79839a" font-size="12" letter-spacing="2">SEQUENTIALAGENT · fleet_command</text>
+  <g font-size="15" font-weight="600">
+    <rect x="484" y="284" width="100" height="46" rx="8" fill="#1a2032" stroke="#7c6cff"/>
+    <text x="534" y="312" fill="#eef1fb" text-anchor="middle">SCOUT</text>
+    <rect x="600" y="284" width="100" height="46" rx="8" fill="#1a2032" stroke="#7c6cff"/>
+    <text x="650" y="312" fill="#eef1fb" text-anchor="middle">AUDIT</text>
+    <rect x="716" y="284" width="100" height="46" rx="8" fill="#1a2032" stroke="#7c6cff"/>
+    <text x="766" y="312" fill="#eef1fb" text-anchor="middle">MEDIC</text>
+    <rect x="816" y="352" width="100" height="46" rx="8" fill="#1a2032" stroke="#f5b23d"/>
+    <text x="866" y="380" fill="#eef1fb" text-anchor="middle">SHIP</text>
+  </g>
+  <line x1="584" y1="307" x2="598" y2="307" stroke="#8b93af" marker-end="url(#arr)"/>
+  <line x1="700" y1="307" x2="714" y2="307" stroke="#8b93af" marker-end="url(#arr)"/>
+  <path d="M816 307 Q 866 307 866 350" fill="none" stroke="#8b93af" marker-end="url(#arr)"/>
+  <text x="484" y="352" fill="#565f7c" font-size="12" font-family="ui-monospace, Menlo, monospace">state: scout_report → audit_findings →</text>
+  <text x="484" y="370" fill="#565f7c" font-size="12" font-family="ui-monospace, Menlo, monospace">medic_fix → ship_summary</text>
+  <text x="484" y="422" fill="#8b93af" font-size="13">Each agent writes an output_key; the next</text>
+  <text x="484" y="441" fill="#8b93af" font-size="13">reads it as a {placeholder}. No hand-threading.</text>
+  <text x="484" y="472" fill="#565f7c" font-size="12" font-family="ui-monospace, Menlo, monospace">model: gemini-3.8-flash</text>
+
+  <!-- Tools row -->
+  <rect x="464" y="508" width="472" height="138" rx="10" fill="#141926" stroke="#232b45"/>
+  <text x="484" y="536" fill="#79839a" font-size="12" letter-spacing="2">FUNCTIONTOOLS</text>
+  <rect x="484" y="552" width="132" height="40" rx="8" fill="#1a2032" stroke="#2dd4bf"/>
+  <text x="550" y="577" fill="#eef1fb" font-size="13" text-anchor="middle">market_search</text>
+  <rect x="628" y="552" width="140" height="40" rx="8" fill="#1a2032" stroke="#2dd4bf"/>
+  <text x="698" y="577" fill="#eef1fb" font-size="13" text-anchor="middle">registrar_check</text>
+  <rect x="780" y="552" width="132" height="40" rx="8" fill="#1a2032" stroke="#f5b23d" stroke-width="2"/>
+  <text x="846" y="577" fill="#eef1fb" font-size="13" text-anchor="middle">stage_deploy</text>
+  <text x="846" y="612" fill="#f5b23d" font-size="12" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">require_confirmation=True</text>
+  <text x="484" y="636" fill="#565f7c" font-size="12">On-switch: labelled SAMPLE until keys are armed.</text>
+
+  <!-- ===== Right column ===== -->
+  <rect x="1060" y="130" width="280" height="170" rx="12" fill="#141926" stroke="#232b45"/>
+  <text x="1080" y="164" fill="#79839a" font-size="13" letter-spacing="2">VERTEX AI · global</text>
+  <text x="1080" y="192" fill="#eef1fb" font-size="18" font-weight="600">Gemini 3.8 Flash</text>
+  <text x="1080" y="218" fill="#8b93af" font-size="14">Called as the service's own</text>
+  <text x="1080" y="238" fill="#8b93af" font-size="14">identity. No API key exists</text>
+  <text x="1080" y="258" fill="#8b93af" font-size="14">anywhere in the deployment.</text>
+
+  <rect x="1060" y="340" width="280" height="90" rx="12" fill="#141926" stroke="#232b45"/>
+  <text x="1080" y="374" fill="#eef1fb" font-size="16" font-weight="600">SerpApi</text>
+  <text x="1080" y="398" fill="#8b93af" font-size="13">SCOUT's market lens. Cached,</text>
+  <text x="1080" y="416" fill="#8b93af" font-size="13">one search per mission.</text>
+
+  <rect x="1060" y="460" width="280" height="90" rx="12" fill="#141926" stroke="#232b45"/>
+  <text x="1080" y="494" fill="#eef1fb" font-size="16" font-weight="600">name.com</text>
+  <text x="1080" y="518" fill="#8b93af" font-size="13">SHIP's registrar check: does the</text>
+  <text x="1080" y="536" fill="#8b93af" font-size="13">target own its own name?</text>
+
+  <!-- ===== Flows ===== -->
+  <!-- cockpit to cloud run -->
+  <line x1="340" y1="230" x2="438" y2="230" stroke="#8b93af" stroke-width="1.6" marker-end="url(#arr)"/>
+  <text x="386" y="216" fill="#79839a" font-size="11" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">POST /run_sse</text>
+  <line x1="438" y1="262" x2="340" y2="262" stroke="#8b93af" stroke-width="1.6" marker-end="url(#arr)"/>
+  <text x="389" y="284" fill="#79839a" font-size="12" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">SSE events</text>
+
+  <!-- cloud run to vertex -->
+  <line x1="960" y1="215" x2="1058" y2="215" stroke="#2dd4bf" stroke-width="1.6" marker-end="url(#arrTeal)"/>
+  <text x="1008" y="203" fill="#2dd4bf" font-size="12" text-anchor="middle">ADC</text>
+
+  <!-- tools to external -->
+  <line x1="616" y1="572" x2="1058" y2="385" stroke="#8b93af" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <line x1="768" y1="572" x2="1058" y2="505" stroke="#8b93af" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+
+  <!-- the gate loop (amber) -->
+  <path d="M780 596 Q 420 650 342 575" fill="none" stroke="#f5b23d" stroke-width="2" marker-end="url(#arrAmber)"/>
+  <text x="470" y="678" fill="#f5b23d" font-size="13" font-family="ui-monospace, Menlo, monospace">adk_request_confirmation → the run PAUSES</text>
+  <path d="M340 614 Q 640 764 930 676" fill="none" stroke="#f5b23d" stroke-width="2" marker-end="url(#arrAmber)"/>
+  <text x="500" y="716" fill="#f5b23d" font-size="13" font-family="ui-monospace, Menlo, monospace">confirmed: true → the SAME invocation resumes</text>
+
+  <text x="60" y="762" fill="#565f7c" font-size="13">The pause is the framework's, not a convention: a refused stage_deploy never executes at all. The gate is the product.</text>
+</svg>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fleet Command, the agentic ops command center</title>
+<title>On Your Go, the agentic ops command center</title>
 <meta name="description" content="An agentic operations command center. A crew of AI agents does the work; a human approval gate holds the trigger.">
 <link rel="canonical" href="https://fleetcommand-2u0.pages.dev/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Fleet Command",
+  "name": "On Your Go",
   "url": "https://fleetcommand-2u0.pages.dev/",
   "description": "An agentic operations command center. Four AI agents scout a site, rank its defects, draft the fix, and stage the deploy, and every consequential action stops at a human approval gate.",
   "applicationCategory": "DeveloperApplication",
@@ -37,7 +37,7 @@
 {
   "@context": "https://schema.org",
   "@type": "HowTo",
-  "name": "How Fleet Command runs an operations mission",
+  "name": "How On Your Go runs an operations mission",
   "description": "Four AI agents work a site in sequence, and the deployment holds until a human approves it.",
   "totalTime": "PT2M",
   "step": [
@@ -74,9 +74,7 @@
   ]
 }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 :root{
   --bg:#0b0e15; --charcoal:#0d1119; --surf:#141926; --surf-hi:#1a2032; --line:#232b45;
@@ -256,17 +254,43 @@ body.gated .why{opacity:.55}
              color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
              box-shadow var(--dur) var(--ease);
 }
-/* Approve is the only lit control on the screen at this moment. That is the
-   point: the decision is a person's, and it should be the brightest thing here. */
-#gate.armed button.approve{
-  background:var(--teal); border-color:var(--teal); color:#06211d;
-  box-shadow:0 8px 24px -10px rgba(45,212,191,.7);
+/* TWO KEY IGNITION (docs/PREMISE.md). The keys are the only lit controls at
+   the hold, and the amber lands on KEY 1 because arming IS the hold moment:
+   the reserved colour still appears at exactly one moment, worn by hardware
+   now instead of a button fill. Turned keys go the go colour. */
+#gate .ignition{align-items:flex-end}
+#gate .keyslot{display:flex; flex-direction:column; align-items:center; gap:.4em; flex:0 0 auto}
+#gate button.key{
+  flex:0 0 auto; width:3.3em; height:3.3em; border-radius:50%; padding:0;
+  display:grid; place-items:center;
+  background:radial-gradient(circle at 35% 28%, var(--surf-hi), var(--charcoal) 72%);
+  border:1px solid var(--line); box-shadow:inset 0 2px 7px rgba(0,0,0,.55);
 }
-#gate.armed button.approve:hover{transform:translateY(-1px)}
-#gate.armed button.approve:active{transform:translateY(0)}
+#gate button.key svg{width:1.75em; height:1.75em; color:var(--faint); display:block;
+  transform:rotate(0deg);
+  transition:transform .3s cubic-bezier(.3,1.5,.4,1), color var(--dur-fast) var(--ease)}
+#gate button.key.turned svg{transform:rotate(90deg); color:var(--go)}
+#gate button.key.turned{border-color:var(--teal); animation:none;
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 16px -5px rgba(45,212,191,.65)}
+#gate.armed button.key:not(:disabled):not(.turned)#keyArm{border-color:var(--amber);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 16px -5px rgba(245,178,61,.7);
+  animation:keyBeckon 1.6s ease-in-out infinite}
+#gate.armed button.key:not(:disabled):not(.turned)#keyArm svg{color:var(--amber)}
+#gate.armed button.key:not(:disabled):not(.turned)#approveBtn{border-color:var(--teal);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 16px -5px rgba(45,212,191,.65)}
+#gate.armed button.key:not(:disabled):not(.turned)#approveBtn svg{color:var(--go)}
+#gate .klabel{font-family:var(--disp); font-size:.56em; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--faint); white-space:nowrap}
+@keyframes keyBeckon{
+  0%,100%{box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 10px -5px rgba(245,178,61,.5)}
+  50%{box-shadow:inset 0 2px 7px rgba(0,0,0,.55), 0 0 20px -4px rgba(245,178,61,.85)}}
 #gate.armed button.reject{border-color:var(--line); color:var(--muted)}
 #gate.armed button.reject:hover{border-color:var(--stone); color:var(--ink)}
-#gate button:disabled{cursor:default; opacity:.45; transform:none; box-shadow:none}
+#gate button:disabled{cursor:default; opacity:.45; transform:none; box-shadow:inset 0 2px 7px rgba(0,0,0,.55)}
+#gate button.key.turned:disabled{opacity:.8}
+@media (prefers-reduced-motion: reduce){
+  #gate button.key svg{transition:none}
+  #gate.armed button.key:not(:disabled):not(.turned)#keyArm{animation:none}}
 
 
 
@@ -391,31 +415,49 @@ footer .f-right{margin-left:auto}
    word. The break lands where the MEANING breaks, never where the box runs out.
    CHILD selector, so a nested accent span is never blocked onto its own line. */
 .sentences > span{display:block;text-wrap:balance}
+/* TWO SHORT SENTENCES THAT SHARE A LINE WHILE THEY FIT (WRITING.md 3). The
+   header sub reads as one line at desktop width; on a phone each sentence drops
+   WHOLE to its own line instead of breaking mid sentence. */
+.inline-sentences > span{display:inline-block;text-wrap:balance}
+
+/* Keep the phone introduction legible without squeezing it between controls. */
+@media (max-width:600px){
+  header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.5rem .75rem;align-items:start;padding:.8rem 1rem}
+  header>div:first-child{grid-column:1 / -1;min-width:0}
+  header .mark{white-space:nowrap}
+  header .sub{font-size:clamp(10px,2.7vw,12px);line-height:1.5;margin-top:.35rem;text-wrap:balance}
+  header .sub>span{display:block;white-space:nowrap}
+  header .spacer{display:none}
+  header .chip{grid-column:1;grid-row:2;align-self:center;justify-self:start}
+  header #searchChip{grid-row:3}
+  header button.run{grid-column:2;grid-row:2;white-space:nowrap;min-height:44px}
+}
 </style>
+<!-- There is always a Keeper. -->
 
   <!-- share:start generated by tools/build-og.mjs -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Fleet Command">
-  <meta property="og:title" content="Fleet Command">
+  <meta property="og:site_name" content="On Your Go">
+  <meta property="og:title" content="On Your Go">
   <meta property="og:description" content="An agentic operations command center. A crew of AI agents does the work; a human approval gate holds the trigger.">
   <meta property="og:url" content="https://fleetcommand-2u0.pages.dev/">
-  <meta property="og:image" content="https://fleetcommand-2u0.pages.dev/og-d8f521af3c.png">
+  <meta property="og:image" content="https://fleetcommand-2u0.pages.dev/og-4d4f7d8333.png">
   <meta property="og:image:width" content="2400">
   <meta property="og:image:height" content="1260">
-  <meta property="og:image:alt" content="Fleet Command: SCOUT, AUDIT and MEDIC feed into SHIP, which holds at the human approval gate.">
+  <meta property="og:image:alt" content="On Your Go: SCOUT, AUDIT and MEDIC feed into SHIP, which holds at the human approval gate.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Fleet Command">
+  <meta name="twitter:title" content="On Your Go">
   <meta name="twitter:description" content="An agentic operations command center. A crew of AI agents does the work; a human approval gate holds the trigger.">
-  <meta name="twitter:image" content="https://fleetcommand-2u0.pages.dev/og-d8f521af3c.png">
+  <meta name="twitter:image" content="https://fleetcommand-2u0.pages.dev/og-4d4f7d8333.png">
   <!-- share:end -->
-</head>
-<body>
+<link data-eslabon-assets="css" rel="stylesheet" href="/assets/eslabon-signature/v001-db87eb241765/signature.css"><style>.esig{flex-shrink:0;position:relative;z-index:2}</style></head>
+<body data-crew="Napoleon">
 <canvas id="bg" aria-hidden="true"></canvas>
 <canvas id="fx" aria-hidden="true"></canvas>
 <header>
   <div>
-    <h1 class="mark"><a href="/" style="color:inherit;text-decoration:none">FLEET <b>COMMAND</b></a></h1>
-    <div class="sub">An AI ops crew that does the work. A human gate that holds the trigger.</div>
+    <h1 class="mark"><a href="/" style="color:inherit;text-decoration:none">ON YOUR <b>GO</b></a></h1>
+    <div class="sub inline-sentences"><span>An AI ops crew that does the work.</span> <span>A human gate that holds the trigger.</span></div>
   </div>
   <div class="spacer"></div>
   <!-- Hidden until a mission reports, so the opening frame stays as recorded. -->
@@ -435,7 +477,7 @@ footer .f-right{margin-left:auto}
     </section>
     <section class="panel target">
       <h2>Mission Target</h2>
-      <p><span class="tname">Harbor Lane Bakery</span> (a fictional demo site, synthetic on purpose). Four pages, a broken order form, no security headers, a six second load. The crew finds it, drafts the fix, and stages the ship.</p>
+      <p class="sentences"><span><span class="tname">Harbor Lane Bakery</span> (a fictional demo site, synthetic on purpose). </span><span>Four pages, a broken order form, no security headers, a six second load. </span><span>The crew finds it, drafts the fix, and stages the ship.</span></p>
     </section>
   </div>
 
@@ -443,7 +485,7 @@ footer .f-right{margin-left:auto}
     <section class="panel" id="stage" style="flex:1">
       <h2>Mission Console</h2>
       <div id="console">
-        <div class="entry"><div class="body sys">Crew standing by. Run the mission to watch four agents work a target in sequence: recon, inspection, fix drafting, and a staged deploy that stops at the human gate. Every risky action waits for a person. That is the product.</div></div>
+        <div class="entry"><div class="body sys sentences"><span>Crew standing by. </span><span>Run the mission to watch four agents work a target in sequence: recon, inspection, fix drafting, and a staged deploy that stops at the human gate. </span><span>Every risky action waits for a person. </span><span>That is the product.</span></div></div>
       </div>
     </section>
   </div>
@@ -452,27 +494,56 @@ footer .f-right{margin-left:auto}
     <section class="panel" id="gate">
       <h2>Approval Gate</h2>
       <div class="ghead" id="gateHead">Your call.</div>
-      <div class="gbody" id="gateBody">Nothing staged. When SHIP stages a deploy it holds here, and only a human click releases it. AI drafts; people decide.</div>
-      <div class="gactions">
-        <button class="approve" id="approveBtn" disabled>Approve</button>
+      <div class="gbody sentences" id="gateBody"><span>Nothing staged. </span><span>When SHIP stages a deploy it holds here, and only a human click releases it. </span><span>AI drafts; people decide.</span></div>
+      <!-- TWO KEY IGNITION (docs/PREMISE.md): the human gate as hardware.
+           Releasing a staged deploy takes two deliberate turns: KEY 1 arms,
+           KEY 2 releases. Send back stays an ordinary button, because only
+           release is consequential. -->
+      <div class="gactions ignition">
+        <div class="keyslot">
+          <button class="key" id="keyArm" disabled aria-pressed="false" aria-label="Key one, arm the release. Press to turn."><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="3.2"/><path d="M20 19.5 L20 34 M20 26 L26 26 M20 31.5 L24.5 31.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg></button>
+          <span class="klabel">Key 1 · Arm</span>
+        </div>
+        <div class="keyslot">
+          <button class="key" id="approveBtn" disabled aria-pressed="false" aria-label="Key two, release the deploy. Press to turn."><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="3.2"/><path d="M20 19.5 L20 34 M20 26 L26 26 M20 31.5 L24.5 31.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" fill="none"/></svg></button>
+          <span class="klabel">Key 2 · Release</span>
+        </div>
         <button class="reject" id="rejectBtn" disabled>Send back</button>
       </div>
     </section>
     <section class="panel why" style="flex:1">
       <h2>Why This Matters</h2>
-      <p><b>Small teams cannot staff an ops crew.</b> Fleet Command gives one person four specialists that never sleep: recon, audit, fixes, and deploys.</p>
-      <p style="margin-top:.6em"><b>Autonomy without the gate is a liability.</b> Every consequential action stops at a named human. The gate is not a limitation of the product. The gate is the product.</p>
+      <p class="sentences"><span><b>Small teams cannot staff an ops crew.</b> </span><span>On Your Go gives one person four specialists that never sleep: recon, audit, fixes, and deploys.</span></p>
+      <p style="margin-top:.6em" class="sentences"><span><b>Autonomy without the gate is a liability.</b> </span><span>Every consequential action stops at a named human. </span><span>The gate is not a limitation of the product. </span><span>The gate is the product.</span></p>
       <p style="margin-top:.6em" class="sentences"><span><b>This engine runs a real fleet.</b></span><span>The same pattern operates a private production ops room managing dozens of live sites today.</span></p>
     </section>
   </div>
 </main>
 
 <footer>
-  <span>Built on Cloudflare Pages + Functions, the Anthropic API, SerpApi, and name.com.</span>
+  <span>Built by The Brockchain, part of Eslabón Group.</span>
   <span class="f-right" id="modeNote">Mode is detected on first run.</span>
 </footer>
 
 <script>
+function splitSentences(text) {
+  // One sentence per span, every character kept. A sentence ends at . ! ? (and
+  // a closing quote or bracket) before space and a capital, a digit or an
+  // opening quote, so "3.5", "$9.99" and "a.m." never split. This replaced a
+  // matcher that silently DROPPED the words before any such period
+  // ("Replaced 3.5 ton unit." read "5 ton unit."), BROCK/WRITING.md 4b, 2026-10-07.
+  var s = String(text), out = [], start = 0, m,
+      END = /[.!?]+["'\u201d\u2019)\]]*\s+(?=["'\u201c\u2018(\[]?[A-Z0-9])/g,
+      ABBR = /(?:^|\s)(?:e\.g|i\.e|a\.m|p\.m|vs|etc|Mr|Mrs|Ms|Dr|St|No|Inc|Ltd|Co)\.$/i;
+  while ((m = END.exec(s))) {
+    if (ABBR.test(s.slice(0, m.index + 1))) continue;
+    out.push(s.slice(start, END.lastIndex));
+    start = END.lastIndex;
+  }
+  if (start < s.length) out.push(s.slice(start));
+  return out.length ? out : [s];
+}
+
 // ?pace controls RENDER SPEED ONLY. The mission itself is identical in every
 // mode: the same four agents make the same calls and return the same content.
 //   video  stretches typing to the demo voice-over timeline, with a breath
@@ -492,8 +563,25 @@ const runBtn = document.getElementById('runBtn');
 const gate = document.getElementById('gate');
 const gateBody = document.getElementById('gateBody');
 const gateHead = document.getElementById('gateHead');
+// ONE SENTENCE PER LINE FOR TEXT THE SCRIPT WRITES (BROCK/WRITING.md 4b). A
+// plain textContent write would erase the sentence spans the markup carries, so
+// the gate's status copy goes through here. The separating space stays INSIDE
+// each span, so textContent still reads back as the original string.
+function writeSentences(el, text){
+  el.textContent = '';
+  el.classList.add('sentences');
+  const parts = splitSentences(text);
+  parts.forEach(function(part, i){
+    const span = document.createElement('span');
+    span.textContent = part.trim() + (i < parts.length - 1 ? ' ' : '');
+    el.appendChild(span);
+  });
+  return el.lastChild;
+}
 const approveBtn = document.getElementById('approveBtn');
 const rejectBtn = document.getElementById('rejectBtn');
+const keyArm = document.getElementById('keyArm');
+function resetKeys(){ keyArm.disabled = true; keyArm.classList.remove('turned'); keyArm.setAttribute('aria-pressed','false'); approveBtn.classList.remove('turned'); approveBtn.setAttribute('aria-pressed','false'); }
 const modeChip = document.getElementById('modeChip');
 const searchChip = document.getElementById('searchChip');
 const modeNote = document.getElementById('modeNote');
@@ -736,11 +824,12 @@ async function runMission(){
   fieldState('working');
   runBtn.disabled = true;
   approveBtn.disabled = true; rejectBtn.disabled = true;
+  resetKeys();
   gate.classList.remove('armed');
   document.body.classList.remove('gated');
   unslam();
   gateHead.textContent = 'Your call.';
-  gateBody.textContent = 'Mission running. SHIP will hold here.';
+  writeSentences(gateBody, 'Mission running. SHIP will hold here.');
   STEPS.forEach(s => { setAgent(s, '', 'idle'); setMeta(s, ''); });
   let prior = '';
   for(const step of STEPS){
@@ -753,41 +842,46 @@ async function runMission(){
       const res = await fetch('/run', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({step, prior})});
       data = await res.json();
     }catch(err){
-      sys.textContent = 'The crew lost contact on ' + step.toUpperCase() + '. Run again.';
+      writeSentences(sys, 'The crew lost contact on ' + step.toUpperCase() + '. Run again.');
       setAgent(step, '', 'error'); setMeta(step, 'no response'); runBtn.disabled = false; return;
     }
     const rtt = performance.now() - tStart;
     sys.parentElement.remove();
     modeChip.textContent = data.mode;
     modeChip.className = 'chip ' + data.mode;
+    // The server says WHY a step fell back to replay (the daily cap, a failed
+    // call). Show that reason instead of the unarmed line, which would be false
+    // once a key is set.
     modeNote.textContent = data.mode === 'live'
-      ? 'Live mode: each step is a real Claude call.'
-      : 'Replay mode: a recorded run of this mission, served honestly until the live key is armed.';
+      ? 'Live mode: each step runs live.'
+      : data.note
+        ? 'Replay mode: ' + data.note + '.'
+        : 'Replay mode: a recorded demonstration of this mission.';
     // SCOUT's market lens, shown as its own entry so the search layer is
     // visible and not just inferred from SCOUT's prose. Labelled live or sample
     // exactly like the crew is.
     if(data.market){
       searchChip.hidden = false;
-      searchChip.textContent = 'serpapi ' + data.market;
+      searchChip.textContent = 'market ' + data.market;
       searchChip.className = 'chip ' + (data.market === 'live' ? 'live' : 'sample');
     }
     const body = addEntry(data.agent, data.mode, '', false);
     await typeInto(body, data.output);
     if(step === 'scout' && Array.isArray(data.marketRows) && data.marketRows.length){
-      const mb = addEntry('MARKET / SERPAPI', data.market, '', false);
-      await typeInto(mb, 'Google search: "' + data.marketQuery + '"\n' + data.marketRows.join('\n'));
+      const mb = addEntry('MARKET RESEARCH', data.market, '', false);
+      await typeInto(mb, 'Market search: "' + data.marketQuery + '"\n' + data.marketRows.join('\n'));
     }
     if(step === 'ship' && Array.isArray(data.domainRows) && data.domainRows.length){
-      const db = addEntry('DEPLOY TARGET / NAME.COM', data.domains, '', false);
+      const db = addEntry('DEPLOY TARGET', data.domains, '', false);
       await typeInto(db, 'Registrar check: does this business own its own name?\n' + data.domainRows.join('\n'));
     }
     // The readout: real round trip, real size, and for the two agents that call
     // out, where that answer actually came from.
     let meta = ms(rtt) + '  ' + (data.output || '').length + 'ch';
     if(step === 'scout' && data.market)
-      meta += '  serpapi:' + (data.market === 'live' ? (data.marketCache === 'kv' ? 'live/cached' : 'live') : 'sample');
+      meta += '  market:' + (data.market === 'live' ? (data.marketCache === 'kv' ? 'live/cached' : 'live') : 'sample');
     if(step === 'ship' && data.domains)
-      meta += '  name.com:' + data.domains;
+      meta += '  domain:' + data.domains;
     setMeta(step, meta);
     prior += '\n\n' + data.agent + ':\n' + data.output;
     setAgent(step, step === 'ship' ? 'holding' : 'done', step === 'ship' ? 'holding' : 'done');
@@ -800,34 +894,47 @@ async function runMission(){
   fieldState('frozen');
   slam();
   gateHead.textContent = 'Your call.';
-  gateBody.textContent = 'SHIP has staged the order-route fix and is holding. Nothing deploys until you decide. This is the moment the whole product exists for.';
-  approveBtn.disabled = false; rejectBtn.disabled = false;
+  writeSentences(gateBody, 'SHIP has staged the order-route fix and is holding. The release takes both keys: turn one to arm, two to release. This is the moment the whole product exists for.');
+  keyArm.disabled = false; rejectBtn.disabled = false;
   runBtn.disabled = false;
 }
 
+keyArm.addEventListener('click', () => {
+  if(keyArm.classList.contains('turned')) return;
+  keyArm.classList.add('turned'); keyArm.setAttribute('aria-pressed','true');
+  approveBtn.disabled = false;
+  writeSentences(gateBody, 'Armed. Key two is live. Turn it and the staged deploy releases; Send back stands down both keys.');
+});
 approveBtn.addEventListener('click', () => {
+  approveBtn.classList.add('turned'); approveBtn.setAttribute('aria-pressed','true');
+  keyArm.disabled = true;
   gate.classList.remove('armed');
   document.body.classList.remove('gated');
   unslam();
   approveBtn.disabled = true; rejectBtn.disabled = true;
   setAgent('ship', 'done', 'released');
-  gateBody.textContent = 'Approved. In production this releases the staged deploy. In this demo nothing actually ships, and it says so, because honesty is a feature.';
-  addEntry('GATE', '', '', false).textContent = 'Human approval given. Deploy released (simulated in this demo). Mission complete.';
+  writeSentences(gateBody, 'Approved. In production this releases the staged deploy. In this demo nothing actually ships, and it says so, because honesty is a feature.');
+  writeSentences(addEntry('GATE', '', '', false), 'Human approval given. Deploy released (simulated in this demo). Mission complete.');
   consoleEl.scrollTop = consoleEl.scrollHeight;
 });
 rejectBtn.addEventListener('click', () => {
+  resetKeys();
   gate.classList.remove('armed');
   document.body.classList.remove('gated');
   unslam();
   approveBtn.disabled = true; rejectBtn.disabled = true;
   setAgent('ship', '', 'sent back');
   setAgent('medic', 'working', 'revising');
-  gateBody.textContent = 'Sent back. MEDIC gets the fix again with your objection attached. The crew iterates; the gate holds.';
-  addEntry('GATE', '', '', false).textContent = 'Human sent the staged deploy back to MEDIC. Nothing shipped.';
+  writeSentences(gateBody, 'Sent back. MEDIC gets the fix again with your objection attached. The crew iterates; the gate holds.');
+  writeSentences(addEntry('GATE', '', '', false), 'Human sent the staged deploy back to MEDIC. Nothing shipped.');
   consoleEl.scrollTop = consoleEl.scrollHeight;
   setTimeout(() => setAgent('medic', 'done', 'done'), 1500);
 });
 runBtn.addEventListener('click', runMission);
 </script>
-</body>
+<section class="esig" data-eslabon-signature data-ground="host" data-eslabon-light="titanium" aria-label="Designed by Eslabon Group">
+ <div class="esig-credit"><a href="https://eslabongroup.com" target="_blank" rel="noopener" aria-label="Designed by Eslabon Group"><span class="esig-by">Designed by</span><span class="esig-brand-mark"><img class="esig-wordmark" src="/assets/eslabon-signature/v001-db87eb241765/lockup.svg" alt="Eslabon Group" width="180" height="64"><span class="esig-metal-surface" aria-hidden="true"></span></span></a></div>
+ <div class="esig-stage" aria-hidden="true"><img class="esig-poster" src="/assets/eslabon-signature/v001-db87eb241765/mark.svg" alt="" width="940" height="360"><canvas class="esig-canvas"></canvas></div>
+ <div class="esig-actions"><button type="button" class="esig-control esig-sound" aria-label="Play signature sound" aria-pressed="false" title="Play sound" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4ZM17 8a6 6 0 0 1 0 8"/></svg></button><button type="button" class="esig-control esig-pause" aria-label="Pause signature animation" title="Pause motion" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button></div>
+ </section><script data-eslabon-assets="js" type="module" src="/assets/eslabon-signature/v001-db87eb241765/signature.mjs"></script></body>
 </html>

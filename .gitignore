@@ -4,3 +4,43 @@ node_modules/
 .dev.vars
 submission/frames/
 submission/frames.txt
+submission/fleetcommand-demo.mp4
+submission/.work/
+submission/youtube/videos/
+submission/youtube/thumbnails/
+submission/youtube/channel/*.png
+submission/youtube/channel/*.jpg
+
+# Voice over masters, archived 2026-08-31 to r2://brock-masters/fleetcommand/vo/
+# and verified by a byte for byte readback. Raw takes are COLD tier per
+# MEDIA-POLICY: the archive holds them, the repo never does. assets/MASTERS.md
+# names every object. Same handling as doctrine's host frames.
+assets/vo/
+
+# A SECOND, DIFFERENT SET OF VOICE TAKES, and the distinction is the whole
+# point of this block. The R2 archive above holds three .webm files taken out
+# of ~/Downloads. These are 9 .wav and .mp3 takes in submission/vo/, about
+# 62MB, and NOTHING archived them: the line above ignores assets/vo/, a folder
+# that does not exist on this disk, so it protected a phantom while the real
+# files sat untracked AND unignored, one sweeping `git add -A` from history.
+# Do not read MASTERS.md as covering these. Per submission/vo/NOTES.md they are
+# references rather than keepers (recorded through the convicted XLR cable), so
+# they are ignored rather than archived, and whether they are worth a COLD tier
+# object at all is Brock's call. NOTES.md itself stays tracked: it carries the
+# paused session state, the mic gain setting, and the note that the film is
+# missing from disk.
+submission/vo/*.wav
+submission/vo/*.mp3
+
+# The two narrator renders mix8.mjs writes. Generated media beside the film
+# that is already ignored above, same rule: the pipeline is tracked, its
+# output never is. They used to be written to a Desktop on another Mac, which
+# is why they were never in anyone's way before.
+submission/fleetcommand-NARRATOR-clean.mp4
+submission/fleetcommand-NARRATOR-music.mp4
+
+# VO session media: reference takes, too big for git. NOTES.md IS tracked.
+submission/vo/*.wav
+submission/vo/*.mp3
+# build-og.mjs screenshot scratch, written at the repo root and deleted after
+.og-tmp.png
