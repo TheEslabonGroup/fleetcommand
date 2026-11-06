@@ -299,7 +299,6 @@ writeFileSync(join(SITE, file), bytes);
  */
 const SITE_TITLE = 'On Your Go';
 const SITE_DESC = 'An agentic operations command center. A crew of AI agents does the work; a human approval gate holds the trigger.';
-const SITE_TWEET = 'Four AI agents do the work. Every consequential action stops at a named human.';
 
 const PAGES = {
   'index.html': { path: '/' },
@@ -334,7 +333,7 @@ const TAGS = (url, meta) => [
   `<meta property="og:image:alt" content="${SITE_TITLE}: SCOUT, AUDIT and MEDIC feed into SHIP, which holds at the human approval gate.">`,
   `<meta name="twitter:card" content="summary_large_image">`,
   `<meta name="twitter:title" content="${meta.title || SITE_TITLE}">`,
-  `<meta name="twitter:description" content="${meta.tweet || SITE_TWEET}">`,
+  `<meta name="twitter:description" content="${meta.tweet || meta.desc || SITE_DESC}">`,
   `<meta name="twitter:image" content="${url}">`,
 ];
 
