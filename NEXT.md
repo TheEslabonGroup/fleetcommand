@@ -66,14 +66,10 @@ The session switched FleetCommand to product facing credits and live status labe
 
 
 
+### November 7, 2026 source status
 
-### 01a1b220 additive board close
+[PR #1](https://github.com/TheEslabonGroup/fleetcommand/pull/1) merged as `743de433030c6ffc0fb14465848fae522eeb5a1b`. This records the completed metadata source update; it does not assert a new deployment.
 
-Written 2026-11-07 17:33 ET on Brockchains-MacBook-Pro. Earlier peer text is retained; this block updates only the reviewed board outcome.
-
-PR #1 merged as `743de433030c6ffc0fb14465848fae522eeb5a1b`. The share-description update preserves the current On Your Go name and share image; the checked source and generated Open Graph/Twitter descriptions agree. The historical Fleet Command entry and its existing naming record remain intact.
-
-This is source maintenance, with no new release or service activation. Next action: `git show 743de433030c6ffc0fb14465848fae522eeb5a1b --stat` for the completed scope, then follow the existing release process only when a release is requested. No running review process is handed off.
 ## Earlier cursor (was RESUME HERE, 2026-09-23, 19:12 PDT, share card fonts, crawler 403 headers, live mode armed)
 
 Ran on **Brockchains-MacBook-Pro** (user `thebrockchain`, fleet root
