@@ -1,0 +1,24 @@
+{
+  "brand": "On Your Go",
+  "fonts": ["700 40px 'Space Grotesk'", "500 20px 'Space Grotesk'"],
+  "assets": [
+    {
+      "file": "avatar-1024.png", "page": "source/avatar.html", "w": 1024, "h": 1024,
+      "circle": [512, 512, 440],
+      "exports": [
+        { "file": "avatar-800.png", "w": 800 },
+        { "file": "avatar-400.png", "w": 400 }
+      ]
+    },
+    {
+      "file": "x-header-3840x1280.jpg", "page": "source/banner.html?v=x", "w": 1500, "h": 500, "out": [3840, 1280],
+      "safe": [300, 60, 1200, 440], "avoid": [[0, 320, 410, 500]], "maxBytes": 5000000,
+      "mock": { "avatar": "avatar-400.png", "at": [207, 500, 334], "ring": 10 }
+    },
+    {
+      "file": "youtube-banner-3840x2160.jpg", "page": "source/banner.html?v=yt", "w": 2560, "h": 1440, "out": [3840, 2160],
+      "safe": [507, 508, 2053, 932], "maxBytes": 6000000,
+      "mock": { "crop": [507, 508, 2053, 932] }
+    }
+  ]
+}

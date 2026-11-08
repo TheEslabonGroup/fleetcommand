@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- On Your Go avatar, 1024. The mark is site/favicon.svg, its geometry and
+     its gradient copied exactly (the crew of three above, the gate rule, the
+     check below; indigo #7c6cff to teal #2dd4bf on charcoal #0d1018). Only the
+     framing changes: the favicon's rounded square becomes the full square,
+     because an avatar is never transparent, and the viewBox is centred on the
+     drawing (its ink runs x 12 to 52, y 16 to 55 of 64) so it sits in the
+     middle of a round crop. Each shape carries data-keep, so the renderer
+     checks the round crop against the real outlines. -->
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d1018}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+</style></head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2.133 1.367 68.267 68.267" aria-label="On Your Go">
+  <defs>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="8" y1="8" x2="56" y2="56">
+      <stop offset="0" stop-color="#7c6cff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <rect x="-2.133" y="1.367" width="68.267" height="68.267" fill="#0d1018"/>
+  <g fill="url(#g)">
+    <circle data-keep="crew 1" cx="18" cy="20" r="4"/>
+    <circle data-keep="crew 2" cx="30" cy="20" r="4"/>
+    <circle data-keep="crew 3" cx="42" cy="20" r="4"/>
+  </g>
+  <path data-keep="gate" d="M14 34h36" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+  <path data-keep="check" d="M20 45l7 7 15-16" stroke="#2dd4bf" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
+</body></html>

@@ -1,0 +1,6 @@
+/* Space Grotesk, the On Your Go display face (site/index.html --disp, the
+   ON YOUR GO wordmark and every label). The file is
+   site/fonts/space-grotesk-500-latin.woff2 copied byte for byte: one variable
+   file carrying 300 to 700, which is why the site's fonts.css points 500, 600
+   and 700 at it. Licence: OFL-SpaceGrotesk.txt beside it. */
+@font-face{font-family:'Space Grotesk';font-weight:300 700;src:url(fonts/space-grotesk-latin.woff2) format('woff2')}

@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- On Your Go profile banners. One source, a layout per platform (?v=x, yt),
+     each laid out in the platform's own frame pixels. Everything is read off
+     the live site: ground #0b0e15, ink #eef1fb, muted #8b93af, indigo #7c6cff
+     (site/index.html :root), the two soft glows of brand/og-card.html, the
+     mark from site/favicon.svg, and Space Grotesk, the face of the ON YOUR GO
+     wordmark, with GO in indigo exactly as the site header sets it (.mark b).
+     The line is the site's own closing sentence and the og card's headline,
+     "The gate is the product.", in capitals per the 2026-10-26 standing
+     direction. Mark and words sit as ONE group centred across the width. -->
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+  :root{--ground:#0b0e15;--ink:#eef1fb;--muted:#8b93af;--indigo:#7c6cff;--teal:#2dd4bf}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden}
+  body{position:relative;background:
+      radial-gradient(58% 62% at 14% 8%, rgba(124,108,255,.16), transparent 66%),
+      radial-gradient(46% 56% at 92% 88%, rgba(245,178,61,.09), transparent 62%),
+      var(--ground)}
+  .stage{position:absolute;display:flex;align-items:center;justify-content:center}
+  .group{display:flex;align-items:center}
+  .mark{display:block;flex:none}
+  .col{display:flex;flex-direction:column;align-items:center}
+  .name{display:block;font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.005em;margin-right:.005em;
+        line-height:.72;white-space:nowrap;color:var(--ink)}
+  .name b{font-weight:700;color:var(--indigo)}
+  .line{display:block;font-family:'Space Grotesk',sans-serif;font-weight:500;letter-spacing:.24em;margin-right:-.24em;
+        line-height:.72;white-space:nowrap;color:var(--muted)}
+</style></head>
+<body>
+<div class="stage">
+  <div class="group">
+    <svg class="mark" data-keep="mark" xmlns="http://www.w3.org/2000/svg" viewBox="12 16 40 39" aria-hidden="true">
+      <defs>
+        <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="8" y1="8" x2="56" y2="56">
+          <stop offset="0" stop-color="#7c6cff"/>
+          <stop offset="1" stop-color="#2dd4bf"/>
+        </linearGradient>
+      </defs>
+      <g fill="url(#g)">
+        <circle cx="18" cy="20" r="4"/>
+        <circle cx="30" cy="20" r="4"/>
+        <circle cx="42" cy="20" r="4"/>
+      </g>
+      <path d="M14 34h36" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M20 45l7 7 15-16" stroke="#2dd4bf" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <div class="col">
+      <span class="name" data-keep="name">ON YOUR <b>GO</b></span>
+      <span class="line" data-keep="line">THE GATE IS THE PRODUCT.</span>
+    </div>
+  </div>
+</div>
+<script>
+  const v = new URLSearchParams(location.search).get('v') || 'x';
+  document.body.classList.add(v);
+  /* Per platform, in frame pixels: the stage (the safe box, pulled in for
+     air), the width the name and the line are both fitted to (so they read as
+     one block), the gap under the name, and the gap between mark and words.
+     The mark is sized after the fit to the height of the words beside it. */
+  const L = {
+    x:  { stage: [300, 60, 1200, 440], w: 560, under: 30, gap: 52 },
+    yt: { stage: [537, 538, 2023, 902], w: 860, under: 44, gap: 80 },
+  }[v];
+  const s = document.querySelector('.stage');
+  Object.assign(s.style, { left: L.stage[0] + 'px', top: L.stage[1] + 'px', width: (L.stage[2] - L.stage[0]) + 'px', height: (L.stage[3] - L.stage[1]) + 'px' });
+  const name = document.querySelector('.name'), line = document.querySelector('.line');
+  name.setAttribute('data-fit', String(L.w)); name.setAttribute('data-fit-max', '400');
+  line.setAttribute('data-fit', String(L.w)); line.setAttribute('data-fit-max', '80');
+  line.style.marginTop = L.under + 'px';
+  document.querySelector('.group').style.gap = L.gap + 'px';
+  window.__afterFit = () => {
+    const h = document.querySelector('.col').getBoundingClientRect().height;
+    const m = document.querySelector('.mark');
+    m.style.height = (h * 1.12) + 'px';
+    m.style.width = (h * 1.12 * 40 / 39) + 'px';
+  };
+</script>
+</body></html>
